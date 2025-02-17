@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  dev:
+    build: 
+      context: .
+      dockerfile: .devcontainer/Dockerfile.dev
+    volumes:
+      - ..:/workspace:cached
+      - delta-spark-cache:/root/.cache
+    command: sleep infinity
+    environment:
+      - PYTHONPATH=/workspace
+      - SPARK_HOME=/opt/spark
+    depends_on:
+      - kyuubi
+      - spark-master
+      - minio
+
+volumes:
+  delta-spark-cache:
