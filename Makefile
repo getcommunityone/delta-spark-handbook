@@ -36,20 +36,26 @@ help:
 setup: create-dirs download-jars create-configs
 	@echo "Setup completed successfully!"
 
+CURRENT_USER := $(shell whoami)
+
 create-dirs:
 	@echo "Creating directories..."
 	@mkdir -p $(DIRS)
-	@sudo chown -R 1001:1001 spark-conf/
-	@sudo chown -R 1001:1001 delta-jars/
+	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) spark-conf/
+	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
 	@sudo chmod -R 755 spark-conf/
 	@sudo chmod -R 755 delta-jars/
 	
+
 download-jars: create-dirs
 	@echo "Downloading Delta Lake and AWS JARs..."
-	@wget -q -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-core_2.12/$(DELTA_VERSION)/delta-core_2.12-$(DELTA_VERSION).jar
-    @wget -q -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/$(DELTA_STORAGE_VERSION)/delta-storage-$(DELTA_STORAGE_VERSION).jar
-	@wget -q -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
-	@wget -q -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/$(AWS_SDK_VERSION)/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
+	@mkdir -p delta-jars
+	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
+	@sudo chmod -R 755 delta-jars/
+	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-core_2.12/$(DELTA_VERSION)/delta-core_2.12-$(DELTA_VERSION).jar
+	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/$(DELTA_STORAGE_VERSION)/delta-storage-$(DELTA_STORAGE_VERSION).jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
+	wget -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/$(AWS_SDK_VERSION)/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
 	@echo "JARs downloaded successfully"
 
 create-configs: create-dirs
