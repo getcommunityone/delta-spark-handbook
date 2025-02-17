@@ -20,7 +20,7 @@ services:
       - minio
 
   spark-master:
-    image: bitnami/spark:3.4.4
+    image: bitnami/spark:3.4
     container_name: spark-master
     environment:
       - SPARK_MODE=master
@@ -36,7 +36,7 @@ services:
       - ./delta-jars:/opt/bitnami/spark/delta-jars
 
   spark-worker:
-    image: bitnami/spark:3.4.4
+    image: bitnami/spark:3.4
     container_name: spark-worker
     environment:
       - SPARK_MODE=worker
