@@ -3,6 +3,7 @@
 # Variables
 SHELL = /bin/bash
 DELTA_VERSION = 2.4.0
+DELTA_STORAGE_VERSION = 2.4.0
 HADOOP_AWS_VERSION = 3.3.2
 AWS_SDK_VERSION = 1.12.261
 
@@ -10,9 +11,11 @@ AWS_SDK_VERSION = 1.12.261
 DIRS = .devcontainer kyuubi-conf spark-conf accelerator/materials/1-getting-started delta-jars warehouse
 
 # JAR files
+# JAR files
 DELTA_JARS = delta-jars/delta-core_2.12-$(DELTA_VERSION).jar \
-	delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar \
-	delta-jars/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
+    delta-jars/delta-storage-$(DELTA_STORAGE_VERSION).jar \
+    delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar \
+    delta-jars/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
 
 # Configuration files
 CONFIG_FILES = kyuubi-conf/kyuubi-defaults.conf spark-conf/spark-defaults.conf requirements.txt
@@ -44,6 +47,7 @@ create-dirs:
 download-jars: create-dirs
 	@echo "Downloading Delta Lake and AWS JARs..."
 	@wget -q -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-core_2.12/$(DELTA_VERSION)/delta-core_2.12-$(DELTA_VERSION).jar
+    @wget -q -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/$(DELTA_STORAGE_VERSION)/delta-storage-$(DELTA_STORAGE_VERSION).jar
 	@wget -q -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
 	@wget -q -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/$(AWS_SDK_VERSION)/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
 	@echo "JARs downloaded successfully"

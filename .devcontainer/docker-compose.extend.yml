@@ -9,12 +9,12 @@ services:
       - ..:/workspace:cached
       - delta-spark-cache:/root/.cache
       - /var/run/docker.sock:/var/run/docker.sock
-      - DEBIAN_FRONTEND=noninteractive
     user: vscode
     command: sleep infinity
     environment:
       - PYTHONPATH=/workspace
       - SPARK_HOME=/opt/spark
+      - DEBIAN_FRONTEND=noninteractive
     depends_on:
       - kyuubi
       - spark-master
