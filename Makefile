@@ -134,3 +134,19 @@ verify: setup
 		fi; \
 	done
 	@echo "Setup verification completed successfully"
+
+setup-spark-conf:
+	@echo "Setting up Spark configuration templates..."
+	@sudo rm -rf spark-conf/
+	@sudo mkdir -p spark-conf/
+	@sudo chown -R $(shell whoami):$(shell whoami) spark-conf/
+	@sudo chmod -R 755 spark-conf/
+	@cd spark-conf && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/fairscheduler.xml.template && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/log4j2.properties.template && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/metrics.properties.template && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/spark-defaults.conf.template && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/spark-env.sh.template && \
+	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/workers.template
+	@sudo chown -R 1001:1001 spark-conf/
+	@sudo chmod -R 755 spark-conf/
