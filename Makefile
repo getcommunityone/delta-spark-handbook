@@ -62,7 +62,7 @@ create-configs: create-dirs
 	@echo "spark.hadoop.fs.s3a.secret.key=minioadmin" >> spark-conf/spark-defaults.conf
 	@echo "spark.hadoop.fs.s3a.path.style.access=true" >> spark-conf/spark-defaults.conf
 	@echo "spark.hadoop.fs.s3a.connection.ssl.enabled=false" >> spark-conf/spark-defaults.conf
-	@echo "spark.jars=/opt/bitnami/spark/delta-jars/*" >> spark-conf/spark-defaults.conf
+	@echo "spark.jars=./delta-jars/*" >> spark-conf/spark-defaults.conf
 	@echo "Creating requirements.txt..."
 	@echo "delta-spark==${DELTA_VERSION}" > requirements.txt
 	@echo "pyspark==3.4.4" >> requirements.txt
