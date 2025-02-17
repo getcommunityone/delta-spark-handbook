@@ -95,7 +95,7 @@ create-configs: create-dirs
 	@echo "spark.jars=./delta-jars/*" >> spark-conf/spark-defaults.conf
 	@echo "Creating requirements.txt..."
 	@echo "delta-spark==${DELTA_VERSION}" > requirements.txt
-	@echo "pyspark==3.4.4 --hash=sha256:d53942b0a4bd567f71e05d191269c689b2ccde2419fbb967923eec560106410e" >> requirements.txt
+	@echo "pyspark==3.4.4  >> requirements.txt
 	@echo "pandas==2.0.3" >> requirements.txt
 	@echo "pyarrow==12.0.1" >> requirements.txt
 	@echo "pytest==7.4.0" >> requirements.txt
