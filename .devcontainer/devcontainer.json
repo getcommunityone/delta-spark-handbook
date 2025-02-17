@@ -1,5 +1,5 @@
 {
-  "name": "Kyuubi Delta Development",
+  "name": "Delta Spark Development",
   "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
   "service": "dev",
   "workspaceFolder": "/workspace/delta-spark-handbook",
