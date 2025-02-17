@@ -6,6 +6,8 @@ DELTA_VERSION = 2.4.0
 DELTA_STORAGE_VERSION = 2.4.0
 HADOOP_AWS_VERSION = 3.3.2
 AWS_SDK_VERSION = 1.12.261
+GIT_USER_NAME ?= "John Bowyer"
+GIT_USER_EMAIL ?= "jcbowyer@hotmail.com"
 
 # Directories
 DIRS = .devcontainer kyuubi-conf spark-conf accelerator/materials/1-getting-started delta-jars warehouse
@@ -33,10 +35,20 @@ help:
 	@echo "  make create-configs - Create configuration files only"
 	@echo "  make verify        - Verify the setup"
 
-setup: create-dirs download-jars create-configs
+setup: create-dirs download-jars create-configs git-config
 	@echo "Setup completed successfully!"
 
 CURRENT_USER := $(shell whoami)
+
+git-config:
+	@echo "Configuring git..."
+	$(call check_defined,GIT_USER_NAME)
+	$(call check_defined,GIT_USER_EMAIL)
+	@git config --global --replace-all user.name '$(GIT_USER_NAME)'
+	@git config --global --replace-all user.email '$(GIT_USER_EMAIL)'
+	@echo "Current git configuration:"
+	@git config --list | grep user
+	@echo "Git configuration completed successfully"
 
 create-dirs:
 	@echo "Creating directories..."
