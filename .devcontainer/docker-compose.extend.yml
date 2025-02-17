@@ -8,6 +8,9 @@ services:
     volumes:
       - ..:/workspace:cached
       - delta-spark-cache:/root/.cache
+      - /var/run/docker.sock:/var/run/docker.sock
+      - DEBIAN_FRONTEND=noninteractive
+    user: vscode
     command: sleep infinity
     environment:
       - PYTHONPATH=/workspace

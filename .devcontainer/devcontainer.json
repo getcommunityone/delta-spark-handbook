@@ -15,6 +15,10 @@
     }
   },
   "forwardPorts": [10009, 19090, 8080, 9000, 9001],
-  "postCreateCommand": "pip install -r requirements.txt",
-  "remoteUser": "vscode"
+  "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "updateRemoteUserUID": true
 }
