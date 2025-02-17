@@ -1,3 +1,0 @@
-delta-jars/aws-java-sdk-bundle-1.12.261.jar
-delta-jars/delta-core_2.12-2.4.0.jar
-delta-jars/hadoop-aws-3.3.2.jar
