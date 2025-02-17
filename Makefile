@@ -52,6 +52,10 @@ download-jars: create-dirs
 	@mkdir -p delta-jars
 	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
 	@sudo chmod -R 755 delta-jars/
+	@rm -f delta-jars/delta-core_2.12-$(DELTA_VERSION).jar
+	@rm -f delta-jars/delta-storage-$(DELTA_STORAGE_VERSION).jar
+	@rm -f delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar
+	@rm -f delta-jars/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-core_2.12/$(DELTA_VERSION)/delta-core_2.12-$(DELTA_VERSION).jar
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/$(DELTA_STORAGE_VERSION)/delta-storage-$(DELTA_STORAGE_VERSION).jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
@@ -79,7 +83,7 @@ create-configs: create-dirs
 	@echo "spark.jars=./delta-jars/*" >> spark-conf/spark-defaults.conf
 	@echo "Creating requirements.txt..."
 	@echo "delta-spark==${DELTA_VERSION}" > requirements.txt
-	@echo "pyspark==3.4.4" >> requirements.txt
+	@echo "pyspark==3.4.4 --hash=sha256:d53942b0a4bd567f71e05d191269c689b2ccde2419fbb967923eec560106410e" >> requirements.txt
 	@echo "pandas==2.0.3" >> requirements.txt
 	@echo "pyarrow==12.0.1" >> requirements.txt
 	@echo "pytest==7.4.0" >> requirements.txt
