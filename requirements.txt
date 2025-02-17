@@ -1,0 +1,11 @@
+delta-spark==2.4.0
+pyspark==3.4.4
+pandas==2.0.3
+pyarrow==12.0.1
+pytest==7.4.0
+black==23.7.0
+jupyter==1.0.0
+python-dotenv==1.0.0
+pyhive==0.7.0
+thrift==0.16.0
+thrift-sasl==0.4.3

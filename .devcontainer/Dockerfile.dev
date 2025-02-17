@@ -1,0 +1,25 @@
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.10
+
+# Install system dependencies
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends \
+    openjdk-17-jdk \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Spark and set up environment
+ENV SPARK_VERSION=3.4.4
+ENV SPARK_HOME=/opt/spark
+ENV PATH=$PATH:$SPARK_HOME/bin
+ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
+
+RUN curl -O https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz \
+    && tar xvf spark-${SPARK_VERSION}-bin-hadoop3.tgz \
+    && mv spark-${SPARK_VERSION}-bin-hadoop3 /opt/spark \
+    && rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
+
+# Install Delta Lake dependencies
+RUN wget https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.4.0/delta-core_2.12-2.4.0.jar -P /opt/spark/jars/ \
+    && wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar -P /opt/spark/jars/ \
+    && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.261/aws-java-sdk-bundle-1.12.261.jar -P /opt/spark/jars/
