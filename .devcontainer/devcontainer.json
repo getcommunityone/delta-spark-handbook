@@ -1,24 +1,16 @@
 {
-  "name": "Kyuubi Delta Development",
-  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
-  "service": "dev",
-  "workspaceFolder": "/workspace/delta-spark-handbook",
+  "name": "Spark Iceberg Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "jupyter",
+  "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "ms-toolsai.jupyter",
-        "redhat.vscode-yaml",
-        "ms-azuretools.vscode-docker"
-      ]
+      "extensions": ["ms-python.python", "ms-toolsai.jupyter"],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
     }
   },
-  "forwardPorts": [10009, 19090, 8080, 9000, 9001],
-  "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt",
-  "remoteUser": "vscode",
-  "mounts": [
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-  ],
-  "updateRemoteUserUID": true
+  "forwardPorts": [9000, 9001, 4040],
+  "postCreateCommand": "pip uninstall -y pyspark && pip install 'pyspark==3.4.0' jupyter pypandoc pandas=='2.0.0' pyarrow=='11.0.0' requests"
 }
