@@ -15,7 +15,7 @@
     }
   },
   "forwardPorts": [10009, 19090, 8080, 9000, 9001],
-  "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt",
+  "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt && mkdir -p spark-conf && sudo chown -R 1001:1001 spark-conf && sudo chmod -R 755 spark-conf",
   "remoteUser": "vscode",
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
