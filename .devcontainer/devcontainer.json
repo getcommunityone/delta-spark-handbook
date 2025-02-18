@@ -1,8 +1,8 @@
 {
   "name": "Delta Spark Development",
-  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.extend.yml"],
+  "dockerComposeFile": ["../docker-compose.yml"],
   "service": "dev",
-  "workspaceFolder": "/workspace/delta-spark-handbook",
+  "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -18,6 +18,7 @@
   "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt && mkdir -p spark-conf && sudo chown -R 1001:1001 spark-conf && sudo chmod -R 755 spark-conf",
   "remoteUser": "vscode",
   "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "updateRemoteUserUID": true
