@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   kyuubi:
     image: apache/kyuubi:master-snapshot
@@ -6,7 +8,8 @@ services:
       - "10009:10009"  # Kyuubi server
       - "19090:19090"  # Kyuubi web UI
     environment:
-      - KYUUBI_JAVA_OPTS=-Dkyuubi.frontend.protocols=THRIFT,REST
+      - KYUUBI_JAVA_OPTS=-Dkyuubi.frontend.thrift.binary.bind.host=0.0.0.0 -Djavax.security.auth.useSubjectCredsOnly=false
+      - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
     volumes:
@@ -20,9 +23,17 @@ services:
       - spark-net
 
   spark-master:
+    hostname: spark-master
+    extra_hosts:
+      - "spark-master:127.0.0.1"
     image: bitnami/spark:3.4
     container_name: spark-master
-    user: "1001"  # This is typically the Bitnami spark user ID
+    user: "root"  # This is typically the Bitnami spark user ID
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "7077"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -33,7 +44,7 @@ services:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
+      - ./spark-conf:/opt/bitnami/spark/conf:rw,z
       - ./delta-jars:/opt/bitnami/spark/delta-jars
     networks:
       - spark-net
@@ -41,7 +52,7 @@ services:
   spark-worker:
     image: bitnami/spark:3.4
     container_name: spark-worker
-    user: "1001"  # This is typically the Bitnami spark user ID
+    user: "root"  # This is typically the Bitnami spark user ID
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -55,13 +66,15 @@ services:
       - ./spark-conf:/opt/bitnami/spark/conf
       - ./delta-jars:/opt/bitnami/spark/delta-jars
     depends_on:
-      - spark-master
+      spark-master:
+        condition: service_healthy
     networks:
       - spark-net
 
   minio:
     image: minio/minio:latest
     container_name: minio
+    hostname: minio
     ports:
       - "9000:9000"
       - "9001:9001"
