@@ -9,3 +9,5 @@ python-dotenv==1.0.0
 pyhive==0.7.0
 thrift==0.16.0
 thrift-sasl==0.4.3
+requests==2.32.3
+
