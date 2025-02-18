@@ -28,12 +28,13 @@ services:
       - "spark-master:127.0.0.1"
     image: bitnami/spark:3.4
     container_name: spark-master
-    user: "root"  # This is typically the Bitnami spark user ID
+    init: true
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "7077"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "curl -f http://localhost:8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -48,6 +49,13 @@ services:
       - ./delta-jars:/opt/bitnami/spark/delta-jars
     networks:
       - spark-net
+
+  spark-netcat-installer:
+    image: bitnami/spark:3.4
+    user: root
+    command: apt-get update && apt-get install -y netcat-traditional
+    volumes:
+      - /usr/bin/nc:/usr/bin/nc
 
   spark-worker:
     image: bitnami/spark:3.4
@@ -75,6 +83,8 @@ services:
     image: minio/minio:latest
     container_name: minio
     hostname: minio
+    extra_hosts:
+      - "spark-master:127.0.0.1"
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -85,14 +95,15 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 10s
     networks:
-      - spark-net
-
+      spark-net:
+          aliases:
+            - minio  # Add explicit alias
   createbucket:
     hostname: createbucket
     container_name: createbucket
@@ -108,9 +119,32 @@ services:
     networks:
       - spark-net
 
+  dev:
+    build: 
+      context: .
+      dockerfile: .devcontainer/Dockerfile.dev
+    volumes:
+      - ..:/workspace:cached
+      - delta-spark-cache:/root/.cache
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: vscode
+    command: sleep infinity
+    environment:
+      - PYTHONPATH=/workspace
+      - SPARK_HOME=/opt/spark
+      - DEBIAN_FRONTEND=noninteractive
+    depends_on:
+      - kyuubi
+      - spark-master
+      - minio
+    networks:
+      - spark-net
+
 networks:
   spark-net:
     driver: bridge
 
 volumes:
   minio-data:
+  delta-spark-cache:
+
