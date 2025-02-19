@@ -7,6 +7,7 @@
 *.pyo
 *.swp
 *~
+minio-data
 .DS_Store
 .ammonite
 .bloop
