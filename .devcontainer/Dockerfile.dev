@@ -48,3 +48,10 @@ RUN wget https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.4.0/delta-cor
     && wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar -P /opt/spark/jars/ \
     && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.261/aws-java-sdk-bundle-1.12.261.jar -P /opt/spark/jars/
  
+# Install Kyuubi dependencies
+RUN pip install kyuubi-pyspark
+
+# Download and install Kyuubi JARs
+RUN mkdir -p /opt/spark/jars && \
+    wget https://repo1.maven.org/maven2/org/apache/kyuubi/kyuubi-spark-sql-engine_2.12/1.8.0/kyuubi-spark-sql-engine_2.12-1.8.0.jar -P /opt/spark/jars/
+    
