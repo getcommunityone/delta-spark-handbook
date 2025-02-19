@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
  
   minio:
@@ -96,6 +94,27 @@ services:
     networks:
       - spark-net
 
+  kyuubi:
+    image: apache/kyuubi:master-snapshot
+    container_name: kyuubi-server
+    ports:
+      - "10009:10009"  # Kyuubi server
+      - "19090:19090"  # Kyuubi web UI
+    environment:
+      - KYUUBI_JAVA_OPTS=-Dkyuubi.frontend.thrift.binary.bind.host=0.0.0.0 -Djavax.security.auth.useSubjectCredsOnly=false
+      - KYUUBI_HOME=/opt/kyuubi
+      - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
+      - SPARK_HOME=/opt/spark
+    volumes:
+      - ./kyuubi-conf:/opt/kyuubi/conf
+      - ./spark-conf:/opt/spark/conf
+      - ./warehouse:/opt/kyuubi/warehouse
+    depends_on:
+      - spark-master
+      - minio
+    networks:
+      - spark-net
+
   dev:
     build: 
       context: .
@@ -111,6 +130,7 @@ services:
       - SPARK_HOME=/opt/spark
       - DEBIAN_FRONTEND=noninteractive
     depends_on:
+      - kyuubi
       - spark-master
       - minio
     networks:
