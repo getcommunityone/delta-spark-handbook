@@ -53,4 +53,23 @@ RUN mkdir -p /opt/spark/jars && \
     wget https://repository.apache.org/content/groups/public/org/apache/kyuubi/kyuubi-spark-sql-engine_2.12/1.8.0/kyuubi-spark-sql-engine_2.12-1.8.0.jar \
     -O /opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.8.0.jar
 
- 
+ # Install make and wget
+RUN apt-get update && \
+apt-get install -y make wget && \
+rm -rf /var/lib/apt/lists/*
+
+# Create working directory
+WORKDIR /app
+
+# Copy Makefile
+COPY mk/hive.mk /app/mk/
+COPY Makefile /app/
+
+# Run make to download and setup JDBC drivers
+RUN make hive-all
+
+# Set environment variables for JDBC drivers
+ENV HIVE_JDBC_DIR=/opt/kyuubi-sqltools/jdbc
+
+# Optional: if you want to keep the container running for debugging
+CMD ["tail", "-f", "/dev/null"]
