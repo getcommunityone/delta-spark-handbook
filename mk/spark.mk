@@ -2,8 +2,8 @@
 
 # Variables
 SHELL = /bin/bash
-DELTA_VERSION = 2.4.0
-DELTA_STORAGE_VERSION = 2.4.0
+DELTA_VERSION = 3.2.1
+DELTA_STORAGE_VERSION = 3.2.1
 HADOOP_AWS_VERSION = 3.3.2
 AWS_SDK_VERSION = 1.12.261
 GIT_USER_NAME ?= "John Bowyer"
@@ -50,29 +50,8 @@ kyu-git-config:
 	@git config --list | grep user
 	@echo "Git configuration completed successfully"
 
-kyu-create-dirs:
-	@echo "Creating directories..."
-	@mkdir -p $(DIRS)
-	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) spark-conf/
-	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
-	@sudo chmod -R 755 spark-conf/
-	@sudo chmod -R 755 delta-jars/
 	
 
-kyu-download-jars: create-dirs
-	@echo "Downloading Delta Lake and AWS JARs..."
-	@mkdir -p delta-jars
-	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
-	@sudo chmod -R 755 delta-jars/
-	@rm -f delta-jars/delta-core_2.12-$(DELTA_VERSION).jar
-	@rm -f delta-jars/delta-storage-$(DELTA_STORAGE_VERSION).jar
-	@rm -f delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar
-	@rm -f delta-jars/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
-	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-core_2.12/$(DELTA_VERSION)/delta-core_2.12-$(DELTA_VERSION).jar
-	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/$(DELTA_STORAGE_VERSION)/delta-storage-$(DELTA_STORAGE_VERSION).jar
-	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
-	wget -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/$(AWS_SDK_VERSION)/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
-	@echo "JARs downloaded successfully"
 
 kyu-create-configs: create-dirs
 	@echo "Creating Spark configuration..."
