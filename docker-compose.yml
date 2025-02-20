@@ -24,7 +24,7 @@ services:
             - minio  # Add explicit alias
 
   spark-master:
-    image: bitnami/spark:3.4.1
+    image: bitnami/spark:3.5.3 
     container_name: spark-master
     user: "1001"  # This is typically the Bitnami spark user ID
     environment:
@@ -55,7 +55,7 @@ services:
 
 
   spark-worker:
-    image: bitnami/spark:3.4.1
+    image: bitnami/spark:3.5.3 
     container_name: spark-worker
     user: "1001"  # This is typically the Bitnami spark user ID
     environment:

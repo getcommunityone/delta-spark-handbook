@@ -1,5 +1,5 @@
-delta-spark==2.4.0
-pyspark==3.4.1
+delta-spark==3.2.1
+pyspark==3.5.3
 pandas==2.0.3
 pyarrow==12.0.1
 pytest==7.4.0
