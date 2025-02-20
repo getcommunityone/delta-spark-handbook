@@ -2,7 +2,7 @@
   "name": "Delta Spark Development",
   "dockerComposeFile": ["../docker-compose.yml"],
   "service": "dev",
-  "workspaceFolder": "/workspace/delta-spark-handbook",
+  "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
       "extensions": [
