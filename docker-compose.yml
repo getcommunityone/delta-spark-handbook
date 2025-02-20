@@ -95,13 +95,13 @@ services:
       - spark-net
 
   kyuubi:
-    image: apache/kyuubi:master-snapshot
+    image: apache/kyuubi:1.8.0
     container_name: kyuubi-server
     ports:
       - "10009:10009"  # Kyuubi server
-      - "8081:8081"  # Kyuubi web UI
+      - "10099:10099"  # Kyuubi web UI
     environment:
-      - KYUUBI_JAVA_OPTS=-Dkyuubi.frontend.thrift.binary.bind.host=0.0.0.0 -Dkyuubi.authentication=NONE -Dkyuubi.frontend.thrift.binary.sasl.enabled=false -Dkyuubi.ssl.enabled=false  -Djavax.security.auth.useSubjectCredsOnly=false
+ #     - KYUUBI_JAVA_OPTS=-Dkyuubi.frontend.thrift.binary.bind.host=0.0.0.0 -Dkyuubi.authentication=NONE -Dkyuubi.frontend.thrift.binary.sasl.enabled=false -Dkyuubi.ssl.enabled=false  -Djavax.security.auth.useSubjectCredsOnly=false
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
