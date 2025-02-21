@@ -31,6 +31,8 @@ services:
         - SPARK_MODE=master
         - SPARK_MASTER_PORT=7077
         - SPARK_MASTER_WEBUI_PORT=8080
+        - AWS_ACCESS_KEY_ID=minioadmin
+        - AWS_SECRET_ACCESS_KEY=minioadmin
     ports:
         - "8080:8080"
         - "7077:7077"
