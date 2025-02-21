@@ -43,15 +43,15 @@ RUN curl -O https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SP
     && rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
 
 # Install Delta Lake dependencies
-RUN wget https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.4.0/delta-core_2.12-2.4.0.jar -P /opt/spark/jars/ \
-    && wget https://repo1.maven.org/maven2/io/delta/delta-storage/2.4.0/delta-storage-2.4.0.jar -P /opt/spark/jars/ \
+RUN wget https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.2.1/delta-spark_2.12-3.2.1.jar -P /opt/spark/jars/ \
+    && wget https://repo1.maven.org/maven2/io/delta/delta-storage/3.2.1/delta-storage-3.2.1.jar -P /opt/spark/jars/ \
     && wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar -P /opt/spark/jars/ \
     && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.261/aws-java-sdk-bundle-1.12.261.jar -P /opt/spark/jars/
  
 # Download and install Kyuubi SQL engine JAR
 RUN mkdir -p /opt/spark/jars && \
-    wget https://repository.apache.org/content/groups/public/org/apache/kyuubi/kyuubi-spark-sql-engine_2.12/1.8.0/kyuubi-spark-sql-engine_2.12-1.8.0.jar \
-    -O /opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.8.0.jar
+    wget https://repository.apache.org/content/groups/public/org/apache/kyuubi/kyuubi-spark-sql-engine_2.12/1.9.3/kyuubi-spark-sql-engine_2.12-1.9.3.jar \
+    -O /opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.9.3.jar
 
  # Install make and wget
 RUN apt-get update && \
@@ -70,6 +70,10 @@ RUN make hive-all
 
 # Set environment variables for JDBC drivers
 ENV HIVE_JDBC_DIR=/opt/kyuubi-sqltools/jdbc
+ENV AWS_ACCESS_KEY_ID=minioadmin
+ENV AWS_SECRET_ACCESS_KEY=minioadmin
+ENV AWS_REGION=us-east-1
+ENV AWS_S3_ENDPOINT=http://minio:9000
 
 # Optional: if you want to keep the container running for debugging
 CMD ["tail", "-f", "/dev/null"]

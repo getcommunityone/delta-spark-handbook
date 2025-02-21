@@ -54,10 +54,6 @@ kyu-git-config:
 
 
 kyu-create-configs: create-dirs
-	@echo "Creating Spark configuration..."
-	@echo "spark.sql.extensions=org.apache.spark.sql.kyuubi.extension.KyuubiSparkSQLExtension" > spark-conf/spark-defaults.conf
-	@echo "spark.driver.extraClassPath=/opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.8.0.jar" >> spark-conf/spark-defaults.conf
-	@echo "spark.executor.extraClassPath=/opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.8.0.jar" >> spark-conf/spark-defaults.conf
 	@echo "Creating requirements.txt..."
 	@echo "delta-spark==${DELTA_VERSION}" > requirements.txt
 	@echo "pyspark==3.4.4  >> requirements.txt
