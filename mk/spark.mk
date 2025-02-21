@@ -77,41 +77,4 @@ kyu-clean:
 	@rm -rf $(DIRS)
 	@rm -f $(CONFIG_FILES)
 	@echo "Cleanup completed"
-
-kyu-verify: setup
-	@echo "Verifying setup..."
-	@for dir in $(DIRS); do \
-		if [ ! -d "$$dir" ]; then \
-			echo "Directory $$dir is missing!"; \
-			exit 1; \
-		fi; \
-	done
-	@for jar in $(DELTA_JARS); do \
-		if [ ! -f "$$jar" ]; then \
-			echo "JAR file $$jar is missing!"; \
-			exit 1; \
-		fi; \
-	done
-	@for config in $(CONFIG_FILES); do \
-		if [ ! -f "$$config" ]; then \
-			echo "Configuration file $$config is missing!"; \
-			exit 1; \
-		fi; \
-	done
-	@echo "Setup verification completed successfully"
-
-kyu-setup-spark-conf:
-	@echo "Setting up Spark configuration templates..."
-	@sudo rm -rf spark-conf/
-	@sudo mkdir -p spark-conf/
-	@sudo chown -R $(shell whoami):$(shell whoami) spark-conf/
-	@sudo chmod -R 755 spark-conf/
-	@cd spark-conf && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/fairscheduler.xml.template && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/log4j2.properties.template && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/metrics.properties.template && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/spark-defaults.conf.template && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/spark-env.sh.template && \
-	wget -q https://raw.githubusercontent.com/apache/spark/master/conf/workers.template
-	@sudo chown -R 1001:1001 spark-conf/
-	@sudo chmod -R 755 spark-conf/
+  
