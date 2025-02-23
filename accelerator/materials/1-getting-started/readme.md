@@ -59,14 +59,7 @@ make kyu-download-jars
 make delta-download-jars
 ```
 
-Available Make commands:
-- `make setup` - Complete setup (create dirs, download JARs, create configs)
-- `make clean` - Remove all generated files and directories
-- `make download-jars` - Download required JARs only
-- `make create-dirs` - Create required directories only
-- `make create-configs` - Create configuration files only
-- `make verify` - Verify all components are properly set up
-- `make help` - Show available commands
+This downloads the necessary JAR files for Spark, Kyuubi, and Delta Lake.  The entire set of JAR files is included in the `delta-jars/` directory in order to prevent version conflicts and ensure compatibility across containers.
 
 3. Open the project in VS Code:
 ```bash
@@ -168,19 +161,25 @@ kyuubi.engine.pool.size=2
 
 ### Common Issues
 
-1. Connection refused to Kyuubi:
+1. DelayedCommitProtocol or serialVersionUID mismatches in the following repositories:
+   - Error: SQL Error: org.apache.kyuubi.KyuubiSQLException: org.apache.kyuubi.KyuubiSQLException: Error operating ExecuteStatement: org.apache.spark.SparkException: Job aborted due to stage failure: Task 0 in stage 8.0 failed 4 times, most recent failure: Lost task 0.3 in stage 8.0 (TID 25) (172.23.0.6 executor 0): java.io.InvalidClassException: org.apache.spark.sql.delta.files.DelayedCommitProtocol; local class incompatible: stream classdesc serialVersionUID = 6189279856998302271, local class serialVersionUID = -6318904361964873150
+   - Ensure you have the correct version of the Delta Lake JARs
+   - Check for version conflicts in `delta-jars/`
+   - Ensure that both spark-master and kyuubi containers are using the same version of the JARs in delta-jars
+
+2. Connection refused to Kyuubi:
    - Ensure Kyuubi service is running: `docker-compose ps`
    - Check Kyuubi logs: `docker-compose logs kyuubi`
 
-2. MinIO connection issues:
+3. MinIO connection issues:
    - Verify MinIO is healthy: `docker-compose ps`
    - Check credentials in Spark configuration
 
-3. Delta Lake errors:
+4. Delta Lake errors:
    - Verify Delta Lake JARs are present in `delta-jars/`
    - Check Spark configuration for Delta Lake extensions
 
-4. Make setup issues:
+5. Make setup issues:
    - Ensure you have GNU Make installed: `make --version`
    - Check for error messages in the Make output
    - Run `make verify` to check the setup
