@@ -4,16 +4,17 @@
 SHELL = /bin/bash
 HADOOP_AWS_VERSION := 3.4.1
 AWS_SDK_VERSION := 1.12.782
+DELTA_JARS_DIR=:= delta-jars
 
 delta-create-dirs:
 	@echo "Creating directories..."
-	@mkdir -p $(DIRS)
+	@mkdir -p $(DELTA_JARS_DIR)
 	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) spark-conf/
 	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/
 	@sudo chmod -R 755 spark-conf/
 	@sudo chmod -R 755 delta-jars/
 
-delta-download-jars: create-dirs
+delta-download-jars: delta-create-dirs
 	@echo "Downloading Delta Lake and AWS JARs..."
 	@mkdir -p delta-jars
 	@sudo chown -R $(CURRENT_USER):$(CURRENT_USER) delta-jars/

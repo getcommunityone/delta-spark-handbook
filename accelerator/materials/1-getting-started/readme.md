@@ -54,13 +54,9 @@ cd delta-spark-handbook
 2. Run the setup using Make:
 ```bash
 # View available commands
-make help
-
-# Complete setup
-make setup
-
-# Verify the setup
-make verify
+make spark-download-jars
+make kyu-download-jars
+make delta-download-jars
 ```
 
 Available Make commands:
