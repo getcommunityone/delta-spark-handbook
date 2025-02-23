@@ -116,6 +116,9 @@ Each module contains:
 - Sample data (if required)
 - Additional resources
 
+## Starting Spark 
+
+
 ## Connecting to Services
 
 ### DBeaver Connection

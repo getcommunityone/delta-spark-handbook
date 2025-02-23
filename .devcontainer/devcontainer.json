@@ -1,7 +1,7 @@
 {
-  "name": "Spark Iceberg Development",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "jupyter",
+  "name": "Delta Spark Development",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "dev",
   "workspaceFolder": "/workspace",
   "customizations": {
     "vscode": {
@@ -11,6 +11,11 @@
       }
     }
   },
-  "forwardPorts": [9000, 9001, 4040],
-  "postCreateCommand": "pip uninstall -y pyspark && pip install 'pyspark==3.4.0' jupyter pypandoc pandas=='2.0.0' pyarrow=='11.0.0' requests"
+  "forwardPorts": [10009, 19090, 8080, 9000, 9001],
+  "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "updateRemoteUserUID": true
 }
