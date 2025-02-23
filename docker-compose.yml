@@ -126,6 +126,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s  
+    volumes:
+      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
     depends_on:
       - spark-master
       - minio
