@@ -1,0 +1,15 @@
+version: 1
+authorization:
+  bearerToken: "dapi0123456789"
+server:
+  host: "0.0.0.0"
+  port: 7777
+shares: []
+storage:
+  type: "s3"
+  root: "s3a://wba/"
+  options:
+    endpoint: "http://minio:9000"
+    access_key: "minioadmin"
+    secret_key: "minioadmin"
+    path_style_access: true
