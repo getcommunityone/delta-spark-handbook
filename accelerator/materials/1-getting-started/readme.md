@@ -113,6 +113,34 @@ Each module contains:
 
 ## Starting Spark 
 
+### Option 1: Docker Compose
+
+Start up
+
+```bash
+docker-compose up -d
+```
+
+Shut Down
+
+```bash
+docker-compose down
+```
+
+### Option 2: VS Code DevContainer
+
+Start up
+
+```bash
+code .
+# Reopen in Container
+```
+
+Shut down
+
+```bash
+# Close VS Code
+```
 
 ## Connecting to Services
 
@@ -124,6 +152,47 @@ Each module contains:
    - Port: 10009
    - Username: (leave blank for no authentication)
    - URL: jdbc:hive2://localhost:10009
+
+### Sample SQL Queries
+
+1. Create table
+
+```sql
+-- Create table
+CREATE TABLE employees (
+    id INT,
+    first_name STRING,
+    last_name STRING,
+    email STRING,
+    department STRING,
+    salary DOUBLE,
+    hire_date STRING
+) USING DELTA;
+```
+
+2. Insert data
+
+```sql
+-- Insert 10 rows of sample data
+INSERT INTO employees VALUES
+    (1, 'John', 'Smith', 'john.smith@company.com', 'Engineering', 85000.00, '2020-01-15'),
+    (2, 'Sarah', 'Johnson', 'sarah.j@company.com', 'Marketing', 75000.00, '2020-03-20'),
+    (3, 'Michael', 'Williams', 'mike.w@company.com', 'Sales', 90000.00, '2019-11-10'),
+    (4, 'Lisa', 'Brown', 'lisa.b@company.com', 'HR', 65000.00, '2021-02-28'),
+    (5, 'David', 'Miller', 'david.m@company.com', 'Engineering', 95000.00, '2019-08-15'),
+    (6, 'Emily', 'Davis', 'emily.d@company.com', 'Marketing', 72000.00, '2021-06-01'),
+    (7, 'James', 'Wilson', 'james.w@company.com', 'Sales', 88000.00, '2020-09-12'),
+    (8, 'Jennifer', 'Taylor', 'jennifer.t@company.com', 'Engineering', 82000.00, '2021-04-05'),
+    (9, 'Robert', 'Anderson', 'robert.a@company.com', 'HR', 67000.00, '2020-07-22'),
+    (10, 'Maria', 'Garcia', 'maria.g@company.com', 'Sales', 86000.00, '2019-12-30');
+```
+
+3. Query data
+
+```sql
+-- Query all rows
+SELECT * FROM employees;
+```
 
 ### Python Connection
 ```python
