@@ -1,9 +1,33 @@
+# Use apache/kyuubi base image with specific tag
 FROM apache/kyuubi:1.10.0-spark
 
-# Copy configuration directories into the container image.
-# This copies your local files into the image, leaving the original files in the base image intact.
+# Set environment variables for Spark version
+ENV SPARK_VERSION=3.5.4
+ENV HADOOP_VERSION=3
+ENV SPARK_HOME=/opt/spark
+
+# Change to root to ensure sufficient permissions for operations
+USER root
+
+# Remove any existing Spark installation, download the specified version, unpack it, and set proper permissions
+RUN rm -rf ${SPARK_HOME} && \
+    wget "https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -O /tmp/spark.tgz && \
+    tar -xzf /tmp/spark.tgz -C /opt && \
+    rm /tmp/spark.tgz && \
+    mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME} && \
+    chmod -R 755 ${SPARK_HOME} || { echo 'Failed to install Spark'; exit 1; }
+
+# Copy configuration directories into the container image
 COPY kyuubi-conf /opt/kyuubi/conf
 COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
 COPY delta-jars /opt/spark/jars
 COPY delta-jars/hive-jdbc-3.1.3.jar /opt/kyuubi/lib/hive-jdbc-3.1.3.jar
+
+# Verify and check the copied files
+RUN if [ ! -d "/opt/kyuubi/conf" ] || [ ! -d "/opt/spark/conf" ] || [ ! -d "/opt/kyuubi/warehouse" ] || [ ! -d "/opt/spark/jars" ]; then \
+        echo "Required configuration directories are missing, please check your Dockerfile's COPY commands."; \
+        exit 1; \
+    fi
+
+# Switch back to a non-root user for securit
