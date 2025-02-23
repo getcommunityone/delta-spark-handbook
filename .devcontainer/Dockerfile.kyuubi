@@ -1,0 +1,17 @@
+FROM apache/kyuubi:1.7.3-all
+
+USER root
+
+# Install wget to download Spark
+RUN apt-get update && apt-get install -y wget
+
+# Download and install Spark
+RUN wget https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz \
+    && tar -xvzf spark-3.5.4-bin-hadoop3.tgz \
+    && mv spark-3.5.4-bin-hadoop3 /opt/spark \
+    && rm spark-3.5.4-bin-hadoop3.tgz
+
+# Set permissions
+RUN chown -R kyuubi:kyuubi /opt/spark
+
+USER kyuubi

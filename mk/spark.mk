@@ -56,7 +56,7 @@ kyu-git-config:
 kyu-create-configs: create-dirs
 	@echo "Creating requirements.txt..."
 	@echo "delta-spark==${DELTA_VERSION}" > requirements.txt
-	@echo "pyspark==3.4.4  >> requirements.txt
+	@echo "pyspark==3.5.4  >> requirements.txt
 	@echo "pandas==2.0.3" >> requirements.txt
 	@echo "pyarrow==12.0.1" >> requirements.txt
 	@echo "pytest==7.4.0" >> requirements.txt

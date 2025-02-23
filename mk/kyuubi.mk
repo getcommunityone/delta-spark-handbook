@@ -1,5 +1,5 @@
 # Kyuubi version to download
-KYUUBI_VERSION := 1.9.3
+KYUUBI_VERSION := 1.7.3
 KYUUBI_FILE := apache-kyuubi-$(KYUUBI_VERSION)-bin.tgz
 
 # Directory setup
@@ -29,21 +29,17 @@ $(HOME_KYUUBI):
 
 # Download and setup Kyuubi, overwriting if it exists
 .PHONY: kyu-download-jars
-kyu-download-jars: $(DELTAJARS_DIR) $(DOWNLOAD_DIR) $(KYUUBI_DIR) $(HOME_KYUUBI)
+kyu-download-all-jars: $(DELTAJARS_DIR) $(DOWNLOAD_DIR)   $(HOME_KYUUBI)
 	echo "Downloading Kyuubi $(KYUUBI_VERSION)..."
 	cd $(DOWNLOAD_DIR) && wget -O $(KYUUBI_FILE) $(KYUUBI_BINARY_URL)
 	echo "Extracting Kyuubi..."
 	rm -rf $(KYUUBI_DIR) && mkdir -p $(KYUUBI_DIR)
 	tar -xzf $(DOWNLOAD_DIR)/$(KYUUBI_FILE) -C $(KYUUBI_DIR) --strip-components=1
-	echo "Copying required JARs..."
-	cp -f $(KYUUBI_DIR)/jars/*.jar $(DELTAJARS_DIR)/
-	echo "Cleaning up..."
-	rm -rf $(DOWNLOAD_DIR)
 	echo "Kyuubi setup complete. JARs are available in $(DELTAJARS_DIR)"
 
 # Download all additional JARs (engine, common, server plugin), overwriting existing files
 .PHONY: kyu-download-additional-jars
-kyu-download-additional-jars: $(DELTAJARS_DIR)
+kyu-download-jars: $(DELTAJARS_DIR)
 	echo "Downloading additional Kyuubi JARs..."
 	wget -O $(DELTAJARS_DIR)/kyuubi-spark-sql-engine_2.12-$(KYUUBI_VERSION).jar $(KYUUBI_ENGINE_JAR_URL)
 	wget -O $(DELTAJARS_DIR)/kyuubi-common_2.12-$(KYUUBI_VERSION).jar $(KYUUBI_COMMON_JAR_URL)
