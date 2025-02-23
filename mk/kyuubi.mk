@@ -1,5 +1,5 @@
 # Kyuubi version to download
-KYUUBI_VERSION := 1.7.3
+KYUUBI_VERSION := 1.10.0
 KYUUBI_FILE := apache-kyuubi-$(KYUUBI_VERSION)-bin.tgz
 
 # Directory setup

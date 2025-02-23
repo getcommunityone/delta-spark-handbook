@@ -1,17 +1,9 @@
-FROM apache/kyuubi:1.7.3-all
+FROM apache/kyuubi:1.10.0-spark
 
-USER root
-
-# Install wget to download Spark
-RUN apt-get update && apt-get install -y wget
-
-# Download and install Spark
-RUN wget https://archive.apache.org/dist/spark/spark-3.5.4/spark-3.5.4-bin-hadoop3.tgz \
-    && tar -xvzf spark-3.5.4-bin-hadoop3.tgz \
-    && mv spark-3.5.4-bin-hadoop3 /opt/spark \
-    && rm spark-3.5.4-bin-hadoop3.tgz
-
-# Set permissions
-RUN chown -R kyuubi:kyuubi /opt/spark
-
-USER kyuubi
+# Copy configuration directories into the container image.
+# This copies your local files into the image, leaving the original files in the base image intact.
+COPY kyuubi-conf /opt/kyuubi/conf
+COPY spark-conf /opt/spark/conf
+COPY warehouse /opt/kyuubi/warehouse
+COPY delta-jars /opt/spark/jars
+COPY delta-jars/hive-jdbc-3.1.3.jar /opt/kyuubi/lib/hive-jdbc-3.1.3.jar
