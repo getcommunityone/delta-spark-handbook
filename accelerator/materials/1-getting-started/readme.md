@@ -263,6 +263,12 @@ kyuubi.engine.pool.size=2
    - Run `make verify` to check the setup
    - Try `make clean` followed by `make setup` for a fresh start
 
+6. Security issues on spark config
+   - Ensure you have correct permission on spark-conf directory.
+```bash
+   sudo chmod -R 755 ./spark-conf
+```
+
 ### Logs
 View service logs:
 ```bash
