@@ -34,7 +34,7 @@ services:
       - "7077:7077"
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf:rw,z
-      - ./delta-jars:/opt/bitnami/spark/delta-jars
+      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
     networks:
       - spark-net
     deploy:
@@ -65,7 +65,7 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf
-      - ./delta-jars:/opt/bitnami/spark/delta-jars
+      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
     depends_on:
       - spark-master
     networks:
@@ -132,6 +132,7 @@ services:
     networks:
       - spark-net
 
+ 
   dev:
     build: 
       context: .
@@ -160,3 +161,4 @@ networks:
 volumes:
   minio-data:
   delta-spark-cache:
+  kyuubi-spark-jars:
