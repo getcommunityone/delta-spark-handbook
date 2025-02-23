@@ -155,7 +155,14 @@ Shut down
 
 ### Sample SQL Queries
 
-1. Create table
+1. View Databases
+
+```sql
+-- View databases
+SHOW DATABASES;
+```
+
+2. Create table
 
 ```sql
 -- Create table
@@ -170,7 +177,9 @@ CREATE TABLE employees (
 ) USING DELTA;
 ```
 
-2. Insert data
+Note you can also create tables in PARQUET and ORC formats.  However, those formats do not support ACID transactions other features of Delta Lake.
+
+3. Insert data
 
 ```sql
 -- Insert 10 rows of sample data
@@ -187,7 +196,7 @@ INSERT INTO employees VALUES
     (10, 'Maria', 'Garcia', 'maria.g@company.com', 'Sales', 86000.00, '2019-12-30');
 ```
 
-3. Query data
+4. Query data
 
 ```sql
 -- Query all rows
