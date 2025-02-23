@@ -15,26 +15,32 @@ This repository contains a complete development environment setup for working wi
 
 ```
 .
-├── .devcontainer/
-│   ├── devcontainer.json          # VS Code DevContainer configuration
-│   ├── docker-compose.extend.yml  # DevContainer compose extension
-│   └── Dockerfile.dev            # Development container definition
-├── accelerator/
-│   └── materials/
-│       └── 1-getting-started/
-│           ├── example.ipynb     # Example notebook for getting started
-│           └── readme.md         # Module-specific documentation
-├── kyuubi-conf/
-│   └── kyuubi-defaults.conf      # Kyuubi server configuration
-├── spark-conf/
-│   └── spark-defaults.conf       # Spark configuration
-├── delta-jars/                   # Delta Lake and AWS connector JARs
-├── warehouse/                    # Hive metastore warehouse directory
-├── docker-compose.yml           # Main Docker Compose configuration
-├── LICENSE                      # Project license
-├── Makefile                     # Project setup and management
-├── README.md                    # Main project documentation
-└── requirements.txt             # Python dependencies
+├── .devcontainer/              # Development container configuration
+│   ├── devcontainer.json      # VS Code DevContainer settings
+│   ├── Dockerfile.dev         # Development environment Dockerfile
+│   └── Dockerfile.kyuubi      # Kyuubi server Dockerfile
+├── .docker/                   # Docker-related files and configurations
+├── .pytest_cache/            # Python test cache directory
+├── .venv/                    # Python virtual environment
+├── .vscode/                  # VS Code editor settings
+├── accelerator/              # Project accelerator materials and examples
+├── delta-jars/              # Delta Lake JAR dependencies
+├── delta-sharing-conf/      # Delta Sharing server configuration
+├── kyuubi-conf/             # Kyuubi server configuration
+├── metastore_db/            # Hive metastore database files
+├── minio-data/              # MinIO object storage data
+├── mk/                      # Makefile includes directory
+├── spark-conf/              # Spark configuration files
+├── src/                     # Source code directory
+├── tests/                   # Test files directory
+├── warehouse/               # Data warehouse directory
+├── .gitignore              # Git ignore patterns
+├── derby.log               # Derby database log file
+├── docker-compose.yml      # Docker Compose configuration
+├── LICENSE                 # Project license file
+├── Makefile               # Project automation scripts
+├── README.md              # Project documentation
+└── requirements.txt       # Python package dependencies
 ```
 
 ## Quick Start
@@ -79,7 +85,7 @@ The environment includes the following services:
 
 ### Kyuubi Server
 - Port: 10009 (JDBC/THRIFT interface)
-- Port: 19090 (Web UI)
+- Port: 19099 (Web UI)
 - Configuration: `kyuubi-conf/kyuubi-defaults.conf`
 
 ### Apache Spark

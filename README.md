@@ -3,7 +3,7 @@ This repo has all the resources you need to become an amazing data engineer focu
 
 ## Getting Started
 
-[Getting Started](1-getting-started/README.md)
+[Getting Started](accelerator/materials/1-getting-started/readme.md)
 
 ## Resources
 
