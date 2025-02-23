@@ -61,13 +61,7 @@ rm -rf /var/lib/apt/lists/*
 # Create working directory
 WORKDIR /app
 
-# Copy Makefile
-COPY mk/hive.mk /app/mk/
-COPY Makefile /app/
-
-# Run make to download and setup JDBC drivers
-RUN make hive-all
-
+ 
 # Set environment variables for JDBC drivers
 ENV AWS_ACCESS_KEY_ID=minioadmin
 ENV AWS_SECRET_ACCESS_KEY=minioadmin
