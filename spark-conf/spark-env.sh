@@ -79,3 +79,7 @@
 # Options for beeline
 # - SPARK_BEELINE_OPTS, to set config properties only for the beeline cli (e.g. "-Dx=y")
 # - SPARK_BEELINE_MEMORY, Memory for beeline (e.g. 1000M, 2G) (Default: 1G)
+LD_PRELOAD=/opt/bitnami/common/lib/libnss_wrapper.so
+LD_PRELOAD=/opt/bitnami/common/lib/libnss_wrapper.so
+LD_PRELOAD=/opt/bitnami/common/lib/libnss_wrapper.so
+LD_PRELOAD=/opt/bitnami/common/lib/libnss_wrapper.so

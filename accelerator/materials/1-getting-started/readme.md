@@ -145,6 +145,7 @@ Shut down
 ## Connecting to Services
 
 ### DBeaver Connection
+
 1. Add a new connection
 2. Select "Apache Hive"
 3. Configure:
@@ -266,7 +267,9 @@ kyuubi.engine.pool.size=2
 6. Security issues on spark config
    - Ensure you have correct permission on spark-conf directory.
 ```bash
+   sudo chown -R 1001:1001 spark-conf
    sudo chmod -R 755 ./spark-conf
+   sudo chmod a+rx ./spark-conf/spark-env.sh
 ```
 
 ### Logs
