@@ -131,17 +131,21 @@ flowchart LR
 
 ## Key Features Comparison
 
-| Feature | Parquet | ORC | Delta Lake | Apache Iceberg |
-|---------|---------|-----|------------|----------------|
-| ACID Transactions | ❌ | ❌ | ✅ | ✅ |
-| Schema Evolution | Limited | Limited | ✅ | ✅ |
-| Time Travel | ❌ | ❌ | ✅ | ✅ |
-| CDC Support | ❌ | ❌ | ✅ | ✅ |
-| Partition Evolution | ❌ | ❌ | ✅ | ✅ |
-| Row-level Operations | ❌ | ❌ | ✅ | ✅ |
-| Streaming Support | Limited | Limited | ✅ | ✅ |
-| Cloud Storage Support | ✅ | ✅ | ✅ | ✅ |
-| Metadata Management | File-based | File-based | Transaction Log | Table Format |
+
+| Feature                   | Parquet | ORC | Delta Lake | Apache Iceberg |
+|---------------------------|---------|-----|------------|----------------|
+| ACID Transactions         | ❌       | ❌   | ✅          | ✅              |
+| Schema Evolution          | Limited | Limited | ✅        | ✅              |
+| Time Travel               | ❌       | ❌   | ✅          | ✅              |
+| CDC Support               | ❌       | ❌   | ✅          | ✅              |
+| Partition Evolution       | ❌       | ❌   | ✅          | ✅              |
+| Row-level Operations      | ❌       | ❌   | ✅          | ✅              |
+| Streaming Support         | Limited | Limited | ✅       | ✅              |
+| Cloud Storage Support     | ✅       | ✅   | ✅          | ✅              |
+| Metadata Management       | File-based | File-based | Transaction Log | Table Format |
+| Unity Catalog Support     | ❌       | ❌   | ✅          | ✅              |
+| Delta Sharing Support     | ❌       | ❌   | ✅          | Limited        |
+
 
 ## Storage Properties
 
