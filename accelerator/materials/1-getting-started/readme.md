@@ -14,33 +14,33 @@ This repository contains a complete development environment setup for working wi
 ## Project Structure
 
 ```
-.
 ├── .devcontainer/              # Development container configuration
-│   ├── devcontainer.json      # VS Code DevContainer settings
-│   ├── Dockerfile.dev         # Development environment Dockerfile
-│   └── Dockerfile.kyuubi      # Kyuubi server Dockerfile
-├── .docker/                   # Docker-related files and configurations
-├── .pytest_cache/            # Python test cache directory
-├── .venv/                    # Python virtual environment
-├── .vscode/                  # VS Code editor settings
-├── accelerator/              # Project accelerator materials and examples
-├── delta-jars/              # Delta Lake JAR dependencies
-├── delta-sharing-conf/      # Delta Sharing server configuration
-├── kyuubi-conf/             # Kyuubi server configuration
-├── metastore_db/            # Hive metastore database files
-├── minio-data/              # MinIO object storage data
-├── mk/                      # Makefile includes directory
-├── spark-conf/              # Spark configuration files
-├── src/                     # Source code directory
-├── tests/                   # Test files directory
-├── warehouse/               # Data warehouse directory
-├── .gitignore              # Git ignore patterns
-├── derby.log               # Derby database log file
-├── docker-compose.yml      # Docker Compose configuration
-├── LICENSE                 # Project license file
-├── Makefile               # Project automation scripts
-├── README.md              # Project documentation
-└── requirements.txt       # Python package dependencies
+│   ├── devcontainer.json       # VS Code DevContainer settings
+│   ├── Dockerfile.dev          # Development environment Dockerfile
+│   ├── Dockerfile.hive         # Hive server Dockerfile
+│   └── Dockerfile.kyuubi       # Kyuubi server Dockerfile
+├── .docker/                    # Docker-related files and configurations
+├── .pytest_cache/              # Python test cache directory
+├── .venv/                      # Python virtual environment
+├── .vscode/                    # VS Code editor settings
+├── accelerator/                # Project accelerator materials and examples
+├── delta-jars/                 # Delta Lake JAR dependencies
+├── delta-sharing-conf/         # Delta Sharing server configuration
+├── hive-config/                # Hive server configuration
+├── kyuubi-conf/                # Kyuubi server configuration
+├── minio-data/                 # MinIO object storage data
+├── mk/                         # Makefile includes directory
+├── spark-conf/                 # Spark configuration files
+├── src/                        # Source code directory
+├── tests/                      # Test files directory
+├── warehouse/                  # Data warehouse directory
+├── .gitignore                  # Git ignore patterns
+├── derby.log                   # Derby database log file
+├── docker-compose.yml          # Docker Compose configuration
+├── LICENSE                     # Project license file
+├── Makefile                    # Project automation scripts
+├── README.md                   # Project documentation
+└── requirements.txt            # Python package dependencies
 ```
 
 ## Quick Start
@@ -71,30 +71,63 @@ code .
 ## Services
 
 The environment includes the following services:
+Based on the Docker Compose file provided, here's an updated services section:
 
-### Kyuubi Server
-- Port: 10009 (JDBC/THRIFT interface)
-- Port: 19099 (Web UI)
-- Configuration: `kyuubi-conf/kyuubi-defaults.conf`
+## Services
 
-### Apache Spark
-- Master Port: 7077
-- Master Web UI: 8080
-- Worker nodes: Configurable
-- Configuration: `spark-conf/spark-defaults.conf`
+The environment includes the following services:
 
 ### MinIO (S3-compatible storage)
-- API Port: 9000
-- Console Port: 9001
+- Ports: 9000 (API), 9001 (Console)
 - Credentials: minioadmin/minioadmin
+- Volume: minio-data
+- Health check enabled
+- Includes a 'createbucket' service that creates a public 'wba' bucket
+
+### PostgreSQL
+- Port: 5432
+- Database: metastore_db
+- Credentials: admin/admin
+- Health check enabled
+
+### Hive Metastore
+- Port: 9083
+- Connected to PostgreSQL
+- Custom configuration in hive-config/
+- Includes AWS connectivity JARs
+
+### Hive Server
+- Ports: 10000, 10002
+- Custom configuration in hive-config/
+- Includes AWS connectivity JARs
+
+### Spark Master
+- Ports: 8080 (Web UI), 7077 (Master)
+- Configuration: spark-conf/
+- Delta JAR files mounted from delta-jars/
+- Environment variables for MinIO access
+
+### Spark Worker
+- Memory: 4G
+- Cores: 2
+- Connected to Spark Master
+- Delta JAR files mounted from delta-jars/
+
+### Delta Sharing Server
+- Port: 7777
+- Configuration: delta-sharing-conf/delta-sharing-server-config.yaml
+- Health check enabled
+
+### Kyuubi Server
+- Ports: 10009 (JDBC/THRIFT interface), 10099
+- Connected to Spark Master and MinIO
 - Health check enabled
 
 ### Development Container
-- Python 3.10
-- Jupyter notebook support
-- Code formatting with Black
-- Direct access to all services
-- Pre-configured VS Code extensions
+- Built from Dockerfile.dev
+- Workspace mounted at /workspace
+- Docker socket mounted for Docker-in-Docker
+- Connected to all other services
 
 ## Module Structure
 
