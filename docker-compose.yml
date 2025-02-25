@@ -19,6 +19,67 @@ services:
       start_period: 10s
     networks:
       - spark-net
+
+
+  postgres:
+    hostname: postgres
+    container_name: postgres
+    image: postgres:10-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: metastore_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d metastore_db"]
+      interval: 1s
+      timeout: 10s
+      retries: 10
+    networks:
+      - spark-net
+
+  hive-metastore:
+    hostname: hive-metastore
+    container_name: hive-metastore
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile.hive
+    ports:
+      - 9083:9083
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
+    volumes:
+      - ./hive-config:/opt/hive/conf
+      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+    depends_on:
+      - postgres
+    networks:
+      - spark-net
+
+  hive-server:
+    hostname: hive-server
+    container_name: hive-server
+    image: apache/hive:4.0.0
+    ports:
+      - 10000:10000
+      - 10002:10002
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: "true"
+      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
+    volumes:
+      - ./hive-config:/opt/hive/conf
+      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+    depends_on:
+      - postgres
+    networks:
+      - spark-net
+
   spark-master:
     image: bitnami/spark:3.5.4
     container_name: spark-master

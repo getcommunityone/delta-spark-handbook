@@ -1,0 +1,84 @@
+<configuration>
+    <property>
+        <name>metastore.thrift.uris</name>
+        <value>thrift://host.docker.internal:9083</value> <!-- Accesing trough localhost to woid docker compose adding _wba-network in hostname -->
+       <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+    </property>
+    <property>
+  <name>hive.metastore.client.factory.class</name>
+  <value>org.apache.hadoop.hive.ql.metadata.SessionHiveMetaStoreClientFactory</value>
+</property>
+    <property>
+        <name>metastore.expression.proxy</name>
+        <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
+    </property>
+    <property>
+        <name>hive.metastore.event.db.notification.api.auth</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>s3a://wba</value>
+    </property>
+    <property>
+        <name>metastore.warehouse.dir</name>
+        <value>s3a://wba/warehouse/</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://postgres:5432/metastore_db</value>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>admin</value>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>admin</value>
+    </property>
+
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>minioadmin</value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>minioadmin</value>
+    </property>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio:9000</value>
+    </property>
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+    <property>
+    <name>fs.s3a.impl</name>
+    <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+<property>
+    <name>hadoop.security.authentication</name>
+    <value>simple</value>
+</property>
+<property>
+    <name>hadoop.security.authorization</name>
+    <value>false</value>
+</property>
+<property>
+    <name>hive.metastore.sasl.enabled</name>
+    <value>false</value>
+</property>
+<property>
+    <name>hive.server2.authentication</name>
+    <value>NONE</value>
+</property>
+
+</configuration>
