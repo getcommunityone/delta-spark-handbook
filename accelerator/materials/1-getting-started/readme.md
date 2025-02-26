@@ -51,23 +51,24 @@ git clone <repository-url>
 cd delta-spark-handbook
 ```
 
-2. Run the setup using Make:
+2. Open the project in VS Code:
+```bash
+code .
+```
+
+3. Create warehouse directory in project root
+
+4. Run the setup using Make:
 ```bash
 # View available commands
-make spark-download-jars
+sudo make spark-download-jars
 make kyu-download-jars
 make delta-download-jars
 ```
 
 This downloads the necessary JAR files for Spark, Kyuubi, and Delta Lake.  The entire set of JAR files is included in the `delta-jars/` directory in order to prevent version conflicts and ensure compatibility across containers.
 
-3. Open the project in VS Code:
-```bash
-code .
-```
-
-4. When prompted, click "Reopen in Container" or use the command palette (F1) and select "Dev-Containers: Reopen in Container"
-
+ 
 ## Services
 
 The environment includes the following services:
@@ -151,7 +152,7 @@ Each module contains:
 Start up
 
 ```bash
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
 Shut Down
