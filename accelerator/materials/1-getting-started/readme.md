@@ -59,11 +59,14 @@ code .
 3. Create warehouse directory in project root
 
 4. Run the setup using Make:
+
+NOTE: FIRST UPDATE YOUR USERNAME AND EMAIL IN mk/git.mk
 ```bash
 # View available commands
 sudo make spark-download-jars
 make kyu-download-jars
 make delta-download-jars
+make git-set-config
 ```
 
 This downloads the necessary JAR files for Spark, Kyuubi, and Delta Lake.  The entire set of JAR files is included in the `delta-jars/` directory in order to prevent version conflicts and ensure compatibility across containers.
