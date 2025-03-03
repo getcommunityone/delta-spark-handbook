@@ -131,3 +131,5 @@ override.tf.json
 .terraformrc
 .terraform.rc
 minio-data
+hiveserver2.pid
+hive-config/hiveserver2.pid
