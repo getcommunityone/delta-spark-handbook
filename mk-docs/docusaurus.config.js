@@ -84,11 +84,22 @@ const config = {
         items: [
           {
             type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'introSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Why CommunityOne',
           },
-      
+          {
+            type: 'docSidebar',
+            sidebarId: 'productsSidebar',
+            position: 'left',
+            label: 'Product Handbooks',
+          },
+          {
+            type: 'docSidebar',
+            sidebarId: 'solutionsSidebar',
+            position: 'left',
+            label: 'Solution Handbooks',
+          },
           {
             href: 'https://github.com/getcommunityone/delta-spark-handbook',
             label: 'GitHub',
@@ -128,6 +139,7 @@ const config = {
           {
             title: 'More',
             items: [
+
               {
                 label: 'GitHub',
                 href: 'https://github.com/getcommunityone/delta-spark-handbook',
