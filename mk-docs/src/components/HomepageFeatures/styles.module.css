@@ -1,3 +1,4 @@
+/* Keep existing styles */
 .features {
   display: flex;
   align-items: center;
@@ -8,4 +9,59 @@
 .featureSvg {
   height: 200px;
   width: 200px;
+}
+
+/* New card styles */
+.card {
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardImage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.cardTitle h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.cardBody {
+  flex: 1;
+  text-align: center;
+}
+
+/* Dark mode adjustments */
+html[data-theme='dark'] .card {
+  background-color: var(--ifm-card-background-color, #242526);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
