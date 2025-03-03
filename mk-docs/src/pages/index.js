@@ -8,19 +8,24 @@ import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
+    <header className={clsx('hero', styles.heroBanner, 'hero--primary')}>
       <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <Heading as="h1" style= {{color:'black'}}  className="hero__title">{siteConfig.title}</Heading>
+        <p style={{color:'black'}} className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
+            className="button button--lg"
+            style={{ backgroundColor: '#ff6347', color: 'white', marginRight: '10px' }}
             to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+            Explore demos
+          </Link>
+          <Link
+            className="button button--lg"
+            style={{ borderColor: '#ff6347', color: '#ff6347', borderWidth: '1px', borderStyle: 'solid' }}
+            to="/docs/intro">
+            Learn more
           </Link>
         </div>
       </div>
@@ -29,11 +34,11 @@ function HomepageHeader() {
 }
 
 export default function Home() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`Community for ${siteConfig.title}`}
+      description="Cloud and Data Architecture">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

@@ -6,25 +6,54 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-primary: #ff6347; /* Tomato */
+  --ifm-color-primary-dark: #ff4f31;
+  --ifm-color-primary-darker: #ff3a1c;
+  --ifm-color-primary-darkest: #f02500;
+  --ifm-color-primary-light: #ff775d;
+  --ifm-color-primary-lighter: #ff8c72;
+  --ifm-color-primary-lightest: #ffa799;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  
+  /* Menu specific colors - tomato based */
+  --ifm-menu-color: black;
+  --ifm-menu-color-active: black;
+  --ifm-menu-color-background-active: rgba(255, 99, 71, 0.1);
+  --ifm-menu-color-background-hover: rgba(255, 99, 71, 0.05);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+  --ifm-color-primary: #ff775d;
+  --ifm-color-primary-dark: #ff6347;
+  --ifm-color-primary-darker: #ff4f31;
+  --ifm-color-primary-darkest: #ff3a1c;
+  --ifm-color-primary-light: #ff8c72;
+  --ifm-color-primary-lighter: #ffa799;
+  --ifm-color-primary-lightest: #ffc2b8;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  
+  /* Menu specific colors - tomato based for dark mode */
+  --ifm-menu-color: #ff8c72;
+  --ifm-menu-color-active: #ff6347;
+  --ifm-menu-color-background-active: rgba(255, 99, 71, 0.2);
+  --ifm-menu-color-background-hover: rgba(255, 99, 71, 0.1);
+}
+
+/* Gradient effect for menu items - tomato based gradients */
+.menu__link {
+  background: linear-gradient(90deg, rgba(255, 99, 71, 0.05) 0%, rgba(255, 117, 92, 0.05) 100%);
+}
+
+.menu__link--active {
+  background: linear-gradient(90deg, rgba(255, 99, 71, 0.2) 0%, rgba(255, 117, 92, 0.2) 100%);
+}
+
+[data-theme='dark'] .menu__link {
+  background: linear-gradient(90deg, rgba(255, 99, 71, 0.1) 0%, rgba(255, 117, 92, 0.1) 100%);
+}
+
+[data-theme='dark'] .menu__link--active {
+  background: linear-gradient(90deg, rgba(255, 99, 71, 0.3) 0%, rgba(255, 117, 92, 0.3) 100%);
 }
