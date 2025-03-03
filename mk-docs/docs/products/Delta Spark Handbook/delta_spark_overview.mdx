@@ -1,6 +1,9 @@
 ---
 sidebar_position: 1
 ---
+
+import MermaidChart from '../../../src/components/MermaidChart';
+
 # The Delta Spark Handbook
 This repo has all the resources you need to become an amazing data engineer focused on delta spark!
 
@@ -72,7 +75,7 @@ This architecture is suitable for:
 
 ## Architecture Diagram
 
-```mermaid
+<MermaidChart chart={`
 flowchart LR
     dbeaver[DBBeaver]
     pandas[Pandas]
@@ -113,7 +116,7 @@ flowchart LR
     metastore --> metastoredb
     deltalake --> hadoop
     hadoop --> storage
-```
+`} />
 
 ## Comparison of Spark Storage Formats
 
