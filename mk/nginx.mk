@@ -1,8 +1,9 @@
 # Makefile for setting up a web server with Nginx to serve a Docusaurus site
 
 # Variables
-SERVER_IP = 0.0.0.0
-DOMAIN = your_domain.com
+SERVER_IP = 136.239.110.18
+DOMAIN = communityone.com
+ADMIN_EMAIL = jcbowyer@hotmail.com
 DOCUSAURUS_DIR = mk-docs
 NGINX_SITES_AVAILABLE = /etc/nginx/sites-available
 NGINX_SITES_ENABLED = /etc/nginx/sites-enabled
@@ -14,8 +15,7 @@ all: nginx-install nginx-build nginx-deploy nginx-restart
 
 # Install Nginx
 nginx-install:
-	sudo apt update
-	sudo apt install -y nginx
+	sudo apt install -y nginx python3 python3-venv libaugeas0 certbot python3-certbot-nginx
 
 # Build the Docusaurus site
 nginx-build:
@@ -32,6 +32,15 @@ nginx-restart:
 # Clean the build directory
 nginx-clean:
 	rm -rf $(BUILD_DIR)/*
+
+# Obtain SSL certificate using Certbot
+nginx-certbot-setup:
+	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) --non-interactive --agree-tos -m $(ADMIN_EMAIL)
+
+# Set up automatic certificate renewal
+nginx-certbot-renew:
+	echo "0 0,12 * * * root certbot renew --quiet" | sudo tee -a /etc/crontab > /dev/null
+
 
 
 
