@@ -26,7 +26,7 @@ node-check-version:
 node-install-all: node-install-prerequisites node-install node-check-version
 
 # Clean up (if necessary)
-clean:
+node-clean:
 	@echo "Cleaning up..."
 	sudo apt autoremove -y
 
