@@ -48,7 +48,7 @@ nginx-config:
         location /minio-storage/ { \
             proxy_set_header Host \$$host; \
             proxy_pass http://localhost:9000; \
-        } \
+        } \ 
     }" > $(NGINX_CONF)'
     sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
 
