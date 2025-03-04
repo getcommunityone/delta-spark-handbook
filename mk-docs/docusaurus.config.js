@@ -98,7 +98,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'solutionsSidebar',
             position: 'left',
-            label: 'Solution Handbooks',
+            label: 'Solution Accelerators',
           },
           {
             href: 'https://github.com/getcommunityone/delta-spark-handbook',
