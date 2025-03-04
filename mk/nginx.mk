@@ -10,7 +10,11 @@ NGINX_SITES_ENABLED = /etc/nginx/sites-enabled
 BUILD_DIR = $(DOCUSAURUS_DIR)/build
 NGINX_CONF = $(NGINX_SITES_AVAILABLE)/$(DOMAIN)
 MINIO_DOMAIN = minio.communityone.com
-
+WEB_ROOT=/var/www/$(DOMAIN)
+SUBDOMAIN=minio
+MINIO_CONF_DIR=/var/www/minio
+MINIO_PORT_1=9001
+MINIO_PORT_2=9000
 
 # Install Nginx
 nginx-install:
@@ -24,31 +28,48 @@ nginx-build:
 # Deploy the Docusaurus build to the serving directory
 nginx-deploy:
 	sudo rsync -av --delete $(BUILD_DIR)/ /var/www/$(DOMAIN)/
+
 nginx-config:
-	if [ -f $(NGINX_CONF) ]; then \
-		sudo cp $(NGINX_CONF) $(NGINX_CONF).bak; \
+	if [ -f $(NGINX_SITES_AVAILABLE)/$(DOMAIN) ]; then \
+		sudo cp $(NGINX_SITES_AVAILABLE)/$(DOMAIN) $(NGINX_SITES_AVAILABLE)/$(DOMAIN).bak; \
 	fi
+	# Main domain and www configuration
 	sudo bash -c 'echo "server { \
 		listen 80; \
 		listen [::]:80; \
 		server_name $(DOMAIN) www.$(DOMAIN); \
 		location / { \
-			root /var/www/$(DOMAIN); \
+			root $(WEB_ROOT); \
+			index index.html index.htm; \
+			try_files \$$uri \$$uri/ =404; \
+		} \
+	}" > $(NGINX_SITES_AVAILABLE)/$(DOMAIN)'
+
+	# Minio subdomain configuration
+	sudo bash -c 'echo "server { \
+		listen 80; \
+		listen [::]:80; \
+		server_name $(MINIO_DOMAIN); \
+		location / { \
+			root $(MINIO_CONF_DIR); \
 			index index.html index.htm; \
 			try_files \$$uri \$$uri/ =404; \
 		} \
 		location /minio/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:9001; \
+			proxy_pass http://localhost:$(MINIO_PORT_1); \
 		} \
 		location /minio-storage/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:9000; \
+			proxy_pass http://localhost:$(MINIO_PORT_2); \
 		} \
-	}" > $(NGINX_CONF)'
-	sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
+	}" > $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)'
 
-# Restart Nginx to apply configuration changes
+	# Enable the site configurations by creating symlinks in sites-enabled
+	sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(DOMAIN) $(NGINX_SITES_ENABLED)/$(DOMAIN)
+	sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN) $(NGINX_SITES_ENABLED)/$(MINIO_DOMAIN)
+
+## Restart Nginx to apply configuration changes
 nginx-restart:
 	sudo systemctl restart nginx
 
