@@ -32,14 +32,15 @@ In this solution accelerator, we provide a few examples to show how the lakehous
 
 README: This notebook
 RUNME: Automating the end-to-end workflow
-0-config: configuration and setup
-1-data-ingest: To ingest synthetic records in csv format from cloud to delta bronze layer and create a synthea database
-2_omop531_cdm_setup: Definitions of OMOP 5.3.1 common data model for delta (DDL)
-3-omop_vocab_setup: create OMOP vocabulary tables
-4_omop531_etl_synthea: Example ETL for transforming synthea resources into OMOP 5.3.1
-5-analysis/CHF-cohort-building: Example notebook to create a cohort of patients with Chronic Heart Failure and look at emergency room visit trends by gender and age
-5-analysis/drug-analysis: Examples for analysis of drug prescription trends
-5-analysis/sample-omop_queries: Sample SQL queries from OHDSI
+
+- 0-config: configuration and setup
+- 1-data-ingest: To ingest synthetic records in csv format from cloud to delta bronze layer and create a synthea database
+- 2_omop531_cdm_setup: Definitions of OMOP 5.3.1 common data model for delta (DDL)
+- 3-omop_vocab_setup: create OMOP vocabulary tables
+- 4_omop531_etl_synthea: Example ETL for transforming synthea resources into OMOP 5.3.1
+- 5-analysis/CHF-cohort-building: Example notebook to create a cohort of patients with Chronic Heart Failure and look at emergency room visit trends by gender and age
+- 5-analysis/drug-analysis: Examples for analysis of drug prescription trends
+- 5-analysis/sample-omop_queries: Sample SQL queries from OHDSI
 
 ## Dataset
 
