@@ -133,3 +133,4 @@ override.tf.json
 minio-data
 hiveserver2.pid
 hive-config/hiveserver2.pid
+*spark-env.sh
