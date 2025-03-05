@@ -37,7 +37,13 @@ nginx-config:
 	sudo bash -c 'echo "server { \
 		listen 80; \
 		listen [::]:80; \
+		proxy_set_header Upgrade \$$http_upgrade; \
+        proxy_set_header Connection 'upgrade'; \
+		
 		server_name $(DOMAIN) www.$(DOMAIN); \
+		real_ip_header X-Real-IP; \
+		proxy_connect_timeout 300; \
+		proxy_http_version 1.1; \
 		location / { \
 			root $(WEB_ROOT); \
 			index index.html index.htm; \
@@ -50,9 +56,17 @@ nginx-config:
 		listen 80; \
 		listen [::]:80; \
 		server_name $(MINIO_DOMAIN); \
+		ignore_invalid_headers off; \
+		client_max_body_size 0; \
+		proxy_buffering off; \
+		proxy_request_buffering off; \
+		
 		location / { \
-      		proxy_set_header Host \$$host; \
-        	proxy_pass http://localhost:$(MINIO_PORT_1)/; \
+			proxy_set_header Host \$$host; \
+			proxy_set_header Upgrade \$$http_upgrade; \
+        	proxy_set_header Connection 'upgrade'; \
+      		chunked_transfer_encoding off; \
+			proxy_pass http://localhost:$(MINIO_PORT_1)/; \
 		} \
 		location /minio/ { \
 			proxy_set_header Host \$$host; \
