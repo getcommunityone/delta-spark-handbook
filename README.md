@@ -209,4 +209,5 @@ Sample Delta Lake Configuration Projects
 
 - [Delta Lakehouse Docker](https://github.com/kemonoske/spark-minio-delta-lakehouse-docker)
 
-
+Minio Reverse Proxy Configuration
+- [NGINX Minio Configuration](https://min.io/docs/minio/linux/integrations/setup-nginx-proxy-with-minio.html)
