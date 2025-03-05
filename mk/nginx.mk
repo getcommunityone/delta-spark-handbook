@@ -39,24 +39,30 @@ nginx-config:
 		listen [::]:80; \
 		server_name $(DOMAIN) www.$(DOMAIN); \
 		location / { \
-			root /var/www/$(DOMAIN); \
+			root $(WEB_ROOT); \
 			index index.html index.htm; \
 			try_files \$$uri \$$uri/ =404; \
 		} \
+	}" > $(NGINX_SITES_AVAILABLE)/$(DOMAIN)'
+
+	# Minio subdomain configuration
+	sudo bash -c 'echo "server { \
+		listen 80; \
+		listen [::]:80; \
+		server_name $(MINIO_DOMAIN); \
+		location / { \
+      		proxy_set_header Host \$$host; \
+        	proxy_pass http://localhost:$(MINIO_PORT_1)/; \
+		} \
 		location /minio/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:9001; \
+			proxy_pass http://localhost:$(MINIO_PORT_1)/; \
 		} \
 		location /minio-storage/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:9000; \
-		} \ 
-
-		# Large file upload support
-    	client_max_body_size 2G;
-
-	}" > $(NGINX_CONF)'
-	sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
+			proxy_pass http://localhost:$(MINIO_PORT_2)/; \
+		} \
+	}" > $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)'
 
 	# Enable the site configurations by creating symlinks in sites-enabled
 	sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(DOMAIN) $(NGINX_SITES_ENABLED)/$(DOMAIN)
