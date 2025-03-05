@@ -61,6 +61,11 @@ code .
 4. Run the setup using Make:
 
 NOTE: FIRST UPDATE YOUR USERNAME AND EMAIL IN mk/git.mk
+NOTE: SECOND CHANGE PERMISSIONS ON
+```bash
+chmod -R 777 ./spark-conf ./delta-jars
+```
+
 ```bash
 # View available commands
 sudo make spark-download-jars
