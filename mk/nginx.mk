@@ -30,10 +30,10 @@ nginx-deploy:
 	sudo rsync -av --delete $(BUILD_DIR)/ /var/www/$(DOMAIN)/
 
 nginx-config:
-	if [ -f $(NGINX_SITES_AVAILABLE)/$(DOMAIN) ]; then \
-		sudo cp $(NGINX_SITES_AVAILABLE)/$(DOMAIN) $(NGINX_SITES_AVAILABLE)/$(DOMAIN).bak; \
+	# Back up the existing Nginx configuration if it exists
+	if [ -f $(NGINX_CONF) ]; then \
+		sudo cp $(NGINX_CONF) $(NGINX_CONF).bak; \
 	fi
-	# Main domain and www configuration
 	sudo bash -c 'echo "server { \
 		listen 80; \
 		listen [::]:80; \
