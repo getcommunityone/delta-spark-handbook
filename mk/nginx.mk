@@ -10,7 +10,11 @@ NGINX_SITES_ENABLED = /etc/nginx/sites-enabled
 BUILD_DIR = $(DOCUSAURUS_DIR)/build
 NGINX_CONF = $(NGINX_SITES_AVAILABLE)/$(DOMAIN)
 MINIO_DOMAIN = minio.communityone.com
-
+WEB_ROOT=/var/www/$(DOMAIN)
+SUBDOMAIN=minio
+MINIO_CONF_DIR=/var/www/minio
+MINIO_PORT_1=9001
+MINIO_PORT_2=9000
 
 # Install Nginx
 nginx-install:
@@ -25,8 +29,6 @@ nginx-build:
 nginx-deploy:
 	sudo rsync -av --delete $(BUILD_DIR)/ /var/www/$(DOMAIN)/
 
-# Configure Nginx to serve the Docusaurus site and proxy to MinIO
-# Configure Nginx to serve the Docusaurus site and proxy to MinIO
 nginx-config:
 	# Back up the existing Nginx configuration if it exists
 	if [ -f $(NGINX_CONF) ]; then \
@@ -52,8 +54,11 @@ nginx-config:
 	}" > $(NGINX_CONF)'
 	sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
 
+	# Enable the site configurations by creating symlinks in sites-enabled
+	sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(DOMAIN) $(NGINX_SITES_ENABLED)/$(DOMAIN)
+	sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN) $(NGINX_SITES_ENABLED)/$(MINIO_DOMAIN)
 
-# Restart Nginx to apply configuration changes
+## Restart Nginx to apply configuration changes
 nginx-restart:
 	sudo systemctl restart nginx
 
@@ -63,7 +68,7 @@ nginx-clean:
 
 # Obtain SSL certificate using Certbot
 nginx-certbot-setup:
-	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
+	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
 
 # Set up automatic certificate renewal
 nginx-certbot-renew:
