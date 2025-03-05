@@ -51,17 +51,16 @@ nginx-config:
 		listen [::]:80; \
 		server_name $(MINIO_DOMAIN); \
 		location / { \
-			root $(MINIO_CONF_DIR); \
-			index index.html index.htm; \
-			try_files \$$uri \$$uri/ =404; \
+      		proxy_set_header Host \$$host; \
+        	proxy_pass http://localhost:$(MINIO_PORT_1)/; \
 		} \
 		location /minio/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:$(MINIO_PORT_1); \
+			proxy_pass http://localhost:$(MINIO_PORT_1)/; \
 		} \
 		location /minio-storage/ { \
 			proxy_set_header Host \$$host; \
-			proxy_pass http://localhost:$(MINIO_PORT_2); \
+			proxy_pass http://localhost:$(MINIO_PORT_2)/; \
 		} \
 	}" > $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)'
 
