@@ -28,29 +28,29 @@ nginx-deploy:
 # Configure Nginx to serve the Docusaurus site and proxy to MinIO
 # Configure Nginx to serve the Docusaurus site and proxy to MinIO
 nginx-config:
-    # Back up the existing Nginx configuration if it exists
-    if [ -f $(NGINX_CONF) ]; then \
-        sudo cp $(NGINX_CONF) $(NGINX_CONF).bak; \
-    fi
-    sudo bash -c 'echo "server { \
-        listen 80; \
-        listen [::]:80; \
-        server_name $(DOMAIN) www.$(DOMAIN); \
-        location / { \
-            root /var/www/$(DOMAIN); \
-            index index.html index.htm; \
-            try_files \$$uri \$$uri/ =404; \
-        } \
-        location /minio/ { \
-            proxy_set_header Host \$$host; \
-            proxy_pass http://localhost:9001; \
-        } \
-        location /minio-storage/ { \
-            proxy_set_header Host \$$host; \
-            proxy_pass http://localhost:9000; \
-        } \ 
-    }" > $(NGINX_CONF)'
-    sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
+	# Back up the existing Nginx configuration if it exists
+	if [ -f $(NGINX_CONF) ]; then \
+		sudo cp $(NGINX_CONF) $(NGINX_CONF).bak; \
+	fi
+	sudo bash -c 'echo "server { \
+		listen 80; \
+		listen [::]:80; \
+		server_name $(DOMAIN) www.$(DOMAIN); \
+		location / { \
+			root /var/www/$(DOMAIN); \
+			index index.html index.htm; \
+			try_files \$$uri \$$uri/ =404; \
+		} \
+		location /minio/ { \
+			proxy_set_header Host \$$host; \
+			proxy_pass http://localhost:9001; \
+		} \
+		location /minio-storage/ { \
+			proxy_set_header Host \$$host; \
+			proxy_pass http://localhost:9000; \
+		} \ 
+	}" > $(NGINX_CONF)'
+	sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
 
 
 # Restart Nginx to apply configuration changes
