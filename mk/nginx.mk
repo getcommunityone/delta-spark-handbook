@@ -51,6 +51,10 @@ nginx-config:
 			proxy_set_header Host \$$host; \
 			proxy_pass http://localhost:9000; \
 		} \ 
+
+		# Large file upload support
+    	client_max_body_size 2G;
+
 	}" > $(NGINX_CONF)'
 	sudo ln -sf $(NGINX_CONF) $(NGINX_SITES_ENABLED)/$(DOMAIN)
 
