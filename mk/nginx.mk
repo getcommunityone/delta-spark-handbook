@@ -107,7 +107,7 @@ nginx-clean:
 
 # Obtain SSL certificate using Certbot
 nginx-certbot-setup:
-	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
+	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) -d $(SPARK_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
 
 # Set up automatic certificate renewal
 nginx-certbot-renew:
