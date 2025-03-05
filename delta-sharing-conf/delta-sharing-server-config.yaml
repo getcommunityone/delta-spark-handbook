@@ -3,11 +3,17 @@ authorization:
   bearerToken: "dapi0123456789"
 server:
   host: "0.0.0.0"
-  port: 7777
-shares: []
+  port: 80
+shares:
+  - name: "default_share"
+    schemas:
+      - name: "default"
+        tables:
+          - name: "shared_employees"
+            location: "s3a://wba/warehouse/shared_employees"
 storage:
   type: "s3"
-  root: "s3a://wba/"
+  root: "s3a://wba/warehouse"
   options:
     endpoint: "http://minio:9000"
     access_key: "minioadmin"
