@@ -134,3 +134,4 @@ minio-data
 hiveserver2.pid
 hive-config/hiveserver2.pid
 spark-env.sh
+spark-conf/spark-env.sh
