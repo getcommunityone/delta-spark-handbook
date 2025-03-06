@@ -63,4 +63,4 @@ delta-download-jars: delta-create-dirs
 	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.20.159/s3-2.20.159.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/utils/2.20.159/utils-2.20.159.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/regions/2.20.159/regions-2.20.159.jar
-
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/2.20.159/aws-core-2.20.159.jar
