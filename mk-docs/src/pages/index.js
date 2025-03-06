@@ -24,7 +24,7 @@ function HomepageHeader() {
           <Link
             className="button button--lg"
             style={{ borderColor: '#ff6347', color: '#ff6347', borderWidth: '1px', borderStyle: 'solid' }}
-            to="/docs/intro">
+            to="/docs/more">
             Learn more
           </Link>
         </div>
