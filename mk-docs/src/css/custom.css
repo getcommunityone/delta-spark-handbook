@@ -4,56 +4,66 @@
  * work well for content-centric websites.
  */
 
+ .navbar__link--active {
+  background: white !important; /* Tomato background */
+  color:  #ff6347 !important; /* White text for contrast */
+  font-weight: bold; /* Make it stand out */
+  border-radius: 5px; /* Optional: rounded edges */
+  padding: 5px 10px; /* Adjust padding for better spacing */
+}
+
+ 
+
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #ff6347; /* Tomato */
-  --ifm-color-primary-dark: #ff4f31;
-  --ifm-color-primary-darker: #ff3a1c;
-  --ifm-color-primary-darkest: #f02500;
-  --ifm-color-primary-light: #ff775d;
-  --ifm-color-primary-lighter: #ff8c72;
-  --ifm-color-primary-lightest: #ffa799;
+  --ifm-color-primary: #606060; /* Medium Gray */
+  --ifm-color-primary-dark: #505050;
+  --ifm-color-primary-darker: #404040;
+  --ifm-color-primary-darkest: #ff6347;
+  --ifm-color-primary-light: #ff6347;
+  --ifm-color-primary-lighter: #808080;
+  --ifm-color-primary-lightest: #909090;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   
-  /* Menu specific colors - tomato based */
+  /* Menu specific colors - grayscale */
   --ifm-menu-color: black;
-  --ifm-menu-color-active: black;
-  --ifm-menu-color-background-active: rgba(255, 99, 71, 0.1);
-  --ifm-menu-color-background-hover: rgba(255, 99, 71, 0.05);
-}
+  --ifm-menu-color-active:  black;
+  --ifm-menu-color-background-active: #ffd6cf;
+  --ifm-menu-color-background-hover: #e6e6e6;
+} 
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #ff775d;
-  --ifm-color-primary-dark: #ff6347;
-  --ifm-color-primary-darker: #ff4f31;
-  --ifm-color-primary-darkest: #ff3a1c;
-  --ifm-color-primary-light: #ff8c72;
-  --ifm-color-primary-lighter: #ffa799;
-  --ifm-color-primary-lightest: #ffc2b8;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #909090;
+  --ifm-color-primary-dark: #808080;
+  --ifm-color-primary-darker: #707070;
+  --ifm-color-primary-darkest: #606060;
+  --ifm-color-primary-light: #a0a0a0;
+  --ifm-color-primary-lighter: #b0b0b0;
+  --ifm-color-primary-lightest: #c0c0c0;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
   
-  /* Menu specific colors - tomato based for dark mode */
-  --ifm-menu-color: #ff8c72;
-  --ifm-menu-color-active: #ff6347;
-  --ifm-menu-color-background-active: rgba(255, 99, 71, 0.2);
-  --ifm-menu-color-background-hover: rgba(255, 99, 71, 0.1);
+  /* Menu specific colors - grayscale for dark mode */
+  --ifm-menu-color: #b0b0b0;
+  --ifm-menu-color-active: #606060;
+  --ifm-menu-color-background-active: #ffd6cf(144, 144, 144, 0.2);
+  --ifm-menu-color-background-hover: rgba(144, 144, 144, 0.1);
 }
 
-/* Gradient effect for menu items - tomato based gradients */
+/* Gradient effect for menu items - grayscale */
 .menu__link {
-  background: linear-gradient(90deg, rgba(255, 99, 71, 0.05) 0%, rgba(255, 117, 92, 0.05) 100%);
+  background: linear-gradient(90deg, rgba(96, 96, 96, 0.05) 0%, rgba(112, 112, 112, 0.05) 100%);
 }
 
 .menu__link--active {
-  background: linear-gradient(90deg, rgba(255, 99, 71, 0.2) 0%, rgba(255, 117, 92, 0.2) 100%);
+  background: linear-gradient(90deg, #ffd6cf 0%, #ffd6cf 100%);
 }
 
 [data-theme='dark'] .menu__link {
-  background: linear-gradient(90deg, rgba(255, 99, 71, 0.1) 0%, rgba(255, 117, 92, 0.1) 100%);
+  background: linear-gradient(90deg, rgba(144, 144, 144, 0.1) 0%, rgba(160, 160, 160, 0.1) 100%);
 }
 
 [data-theme='dark'] .menu__link--active {
-  background: linear-gradient(90deg, rgba(255, 99, 71, 0.3) 0%, rgba(255, 117, 92, 0.3) 100%);
+  background: linear-gradient(90deg, rgba(144, 144, 144, 0.3) 0%, rgba(160, 160, 160, 0.3) 100%);
 }
