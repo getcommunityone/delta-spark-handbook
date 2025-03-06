@@ -10,7 +10,9 @@ NGINX_SITES_ENABLED = /etc/nginx/sites-enabled
 BUILD_DIR = $(DOCUSAURUS_DIR)/build
 NGINX_CONF = $(NGINX_SITES_AVAILABLE)/$(DOMAIN)
 MINIO_DOMAIN = minio.communityone.com
-SPARK_DOMAIN="spark.communityone.com"
+SPARK_DOMAIN = spark.communityone.com
+JDBC_DOMAIN = jdbc.communityone.com
+DELTASHARING_DOMAIN = deltasharing.communityone.com
 WEB_ROOT=/var/www/$(DOMAIN)
 SUBDOMAIN=minio
 MINIO_CONF_DIR=/var/www/minio
@@ -89,11 +91,85 @@ nginx-config:
 	@echo "        proxy_pass http://localhost:8080/api/;" >> $(NGINX_SITES_AVAILABLE)/$(SPARK_DOMAIN)
 	@echo "    }" >> $(NGINX_SITES_AVAILABLE)/$(SPARK_DOMAIN)
 	@echo "}" >> $(NGINX_SITES_AVAILABLE)/$(SPARK_DOMAIN)
-
 	@sudo chmod 644 $(NGINX_SITES_AVAILABLE)/$(SPARK_DOMAIN)
-
-	# Enable the site configuration by creating a symlink in sites-enabled
 	@sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(SPARK_DOMAIN) $(NGINX_SITES_ENABLED)/$(SPARK_DOMAIN)
+	
+	
+	@sudo rm -f $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@sudo touch $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@sudo chmod 666 $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	
+	@echo "server {" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	listen 80;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	listen [::]:80;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	server_name $(MINIO_DOMAIN);" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	ignore_invalid_headers off;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	client_max_body_size 0;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_buffering off;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_request_buffering off;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	# Global proxy settings for all locations" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_http_version 1.1;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header Host \$$host;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header X-Real-IP \$$remote_addr;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header X-Forwarded-Proto \$$scheme;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	# WebSocket specific headers" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header Upgrade \$$http_upgrade;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	proxy_set_header Connection \"upgrade\";" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	# Root location" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	location / {" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "		chunked_transfer_encoding off;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "		proxy_pass http://localhost:$(MINIO_PORT_1)/;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	}" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	# WebSocket specific location" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	location /ws/ {" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "		proxy_pass http://localhost:$(MINIO_PORT_1)/ws/;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	}" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	location /minio/ {" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "		proxy_pass http://localhost:$(MINIO_PORT_1)/;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	}" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	location /minio-storage/ {" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "		proxy_pass http://localhost:$(MINIO_PORT_2)/;" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "	}" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	@echo "}" >> $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	
+	@sudo chmod 644 $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	
+	
+	@sudo chmod 644 $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN)
+	
+	@sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(MINIO_DOMAIN) $(NGINX_SITES_ENABLED)/$(MINIO_DOMAIN)
+	
+		@sudo rm -f $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@sudo touch $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@sudo chmod 666 $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+
+	@echo "server {" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "    listen 80;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "    listen [::]:80;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "    server_name $(JDBC_DOMAIN);" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "    location / {" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_pass http://localhost:10009/;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_http_version 1.1;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header Upgrade \$$http_upgrade;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header Connection \"upgrade\";" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header Host \$$host;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header X-Real-IP \$$remote_addr;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header X-Forwarded-For \$$proxy_add_x_forwarded_for;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "        proxy_set_header X-Forwarded-Proto \$$scheme;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "    }" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+	@echo "}" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+
+	@sudo chmod 644 $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN)
+
 
 	# Verify nginx configuration and reload if valid
 	@sudo nginx -t && sudo systemctl reload nginx && echo "Nginx configuration for Spark updated and reloaded successfully" || echo "Nginx configuration has errors. Please check the syntax."
@@ -107,7 +183,7 @@ nginx-clean:
 
 # Obtain SSL certificate using Certbot
 nginx-certbot-setup:
-	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) -d $(SPARK_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
+	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) -d $(SPARK_DOMAIN) -d $(JDBC_DOMAIN) -d $(DELTASHARING_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
 
 # Set up automatic certificate renewal
 nginx-certbot-renew:
