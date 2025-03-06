@@ -57,4 +57,10 @@ delta-download-jars: delta-create-dirs
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.7/commons-configuration2-2.7.jar
 
 
-	@echo "JARs downloaded successfully"
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/kinesis/amazon-kinesis-client/3.0.0/amazon-kinesis-client-3.0.0.jar
+
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/auth/2.20.159/auth-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.20.159/s3-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/utils/2.20.159/utils-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/regions/2.20.159/regions-2.20.159.jar
+
