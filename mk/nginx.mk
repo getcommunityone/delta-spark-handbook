@@ -91,7 +91,7 @@ nginx-config:
 		echo "    listen [::]:80;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
 		echo "    server_name $(JDBC_DOMAIN);" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
 		echo "    location / {" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
-		echo "        proxy_pass http://localhost:10009/;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
+		echo "        proxy_pass http://localhost:10099/;" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
 		echo "    }" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
 		echo "}" >> $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN); \
 		sudo ln -sf $(NGINX_SITES_AVAILABLE)/$(JDBC_DOMAIN) $(NGINX_SITES_ENABLED)/$(JDBC_DOMAIN); \
@@ -111,7 +111,7 @@ nginx-clean:
 
 # Obtain SSL certificate using Certbot
 nginx-certbot-setup:
-	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) -d $(SPARK_DOMAIN) -d $(JDBC_DOMAIN) -d $(DELTASHARING_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
+	sudo certbot --nginx -d $(DOMAIN) -d www.$(DOMAIN) -d $(MINIO_DOMAIN) -d $(SPARK_DOMAIN) -d $(JDBC_DOMAIN) --expand --non-interactive --agree-tos -m $(ADMIN_EMAIL) --redirect
 
 # Set up automatic certificate renewal
 nginx-certbot-renew:

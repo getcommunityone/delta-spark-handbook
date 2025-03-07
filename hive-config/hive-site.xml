@@ -64,6 +64,10 @@
     <name>fs.s3a.impl</name>
     <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
     </property>
+    <property>
+    <name>fs.s3a.aws.credentials.provider</name>
+    <value>com.amazonaws.auth.DefaultAWSCredentialsProviderChain</value>
+</property>
 <property>
     <name>hadoop.security.authentication</name>
     <value>simple</value>

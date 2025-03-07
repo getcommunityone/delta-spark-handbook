@@ -3,7 +3,7 @@
 # Variables
 SHELL = /bin/bash
 HADOOP_AWS_VERSION := 3.4.1
-AWS_SDK_VERSION := 1.12.782
+AWS_SDK_VERSION := 2.20.159
 DELTA_JARS_DIR=:= delta-jars
 
 delta-create-dirs:
@@ -22,7 +22,7 @@ delta-download-jars: delta-create-dirs
 	@rm -f delta-jars/delta-spark_2.12-3.3.0.jar
 	@rm -f delta-jars/delta-storage-3.3.0.jar
 	@rm -f delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar
-	@rm -f delta-jars/aws-java-sdk-bundle-1.12.782.jar
+	@rm -f delta-jars/aws-java-sdk-bundle-2.20.159.jar
 	@rm -f delta-jars/hive-jdbc-3.1.3.jar
 	@rm -f delta-jars/hadoop-common-3.4.1.jar
 	@rm -f delta-jars/hadoop-client-3.4.1.jar
@@ -37,7 +37,7 @@ delta-download-jars: delta-create-dirs
 
 	# Download Hadoop AWS and AWS SDK JARs
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
-	wget -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.782/aws-java-sdk-bundle-1.12.782.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/aws-sdk-java/2.20.159/aws-sdk-java-2.20.159.jar
 
 	# Download Hive JDBC JAR
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/3.1.3/hive-jdbc-3.1.3.jar
@@ -57,4 +57,10 @@ delta-download-jars: delta-create-dirs
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.7/commons-configuration2-2.7.jar
 
 
-	@echo "JARs downloaded successfully"
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/kinesis/amazon-kinesis-client/3.0.0/amazon-kinesis-client-3.0.0.jar
+
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/auth/2.20.159/auth-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.20.159/s3-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/utils/2.20.159/utils-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/regions/2.20.159/regions-2.20.159.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/2.20.159/aws-core-2.20.159.jar

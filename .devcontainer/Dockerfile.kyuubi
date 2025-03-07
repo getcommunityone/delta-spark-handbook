@@ -2,7 +2,7 @@
 FROM apache/kyuubi:1.10.0
 
 # Set environment variables for Spark version
-ENV SPARK_VERSION=3.5.4
+ENV SPARK_VERSION=3.5.5
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/opt/spark
 
@@ -17,12 +17,18 @@ RUN rm -rf ${SPARK_HOME} && \
     mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME} && \
     chmod -R 755 ${SPARK_HOME} || { echo 'Failed to install Spark'; exit 1; }
 
+# Install AWS SDK dependencies
+RUN wget -P /opt/spark/jars/ \
+https://repo1.maven.org/maven2/software/amazon/awssdk/aws-sdk-java/2.20.159/aws-sdk-java-2.20.159.jar && \
+    wget -P /opt/spark/jars/ \
+    https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
  
 # Copy configuration directories into the container image
 COPY kyuubi-conf /opt/kyuubi/conf
 COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
 COPY delta-jars /opt/spark/jars
+COPY delta-jars /opt/kyuubi/jars
 
 # Verify and check the copied files
 RUN if [ ! -d "/opt/kyuubi/conf" ] || [ ! -d "/opt/spark/conf" ] || [ ! -d "/opt/kyuubi/warehouse" ] || [ ! -d "/opt/spark/jars" ]; then \
