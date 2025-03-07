@@ -2,39 +2,45 @@
 FROM apache/kyuubi:1.10.0
 
 # Set environment variables for Spark version
-ENV SPARK_VERSION=3.5.5
+ENV SPARK_VERSION=3.5.1  # Verify the latest version
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/opt/spark
 
 # Change to root to ensure sufficient permissions for operations
 USER root
 
-# Remove any existing Spark installation, download the specified version, unpack it, and set proper permissions
+# Create necessary directories
+RUN mkdir -p /opt/kyuubi/conf /opt/spark/conf /opt/kyuubi/warehouse
+
+# Remove existing Spark, download new version, extract and set permissions
 RUN rm -rf ${SPARK_HOME} && \
-    wget "https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -O /tmp/spark.tgz && \
+    wget --retry-connrefused --waitretry=5 --timeout=30 --tries=5 \
+    "https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" -O /tmp/spark.tgz && \
     tar -xzf /tmp/spark.tgz -C /opt && \
     rm /tmp/spark.tgz && \
     mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME} && \
-    chmod -R 755 ${SPARK_HOME} || { echo 'Failed to install Spark'; exit 1; }
+    chmod -R 755 ${SPARK_HOME}
 
 # Install AWS SDK dependencies
 RUN wget -P /opt/spark/jars/ \
-https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.610/aws-java-sdk-bundle-1.12.610.jar && \
+    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.610/aws-java-sdk-bundle-1.12.610.jar && \
     wget -P /opt/spark/jars/ \
     https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
- 
-# Copy configuration directories into the container image
+
+# Copy configuration files
 COPY kyuubi-conf /opt/kyuubi/conf
 COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
-COPY delta-jars /opt/spark/jars
-COPY delta-jars /opt/kyuubi/jars
 
-# Verify and check the copied files
+
+# Verify the copied files
 RUN if [ ! -d "/opt/kyuubi/conf" ] || [ ! -d "/opt/spark/conf" ] || [ ! -d "/opt/kyuubi/warehouse" ] || [ ! -d "/opt/spark/jars" ]; then \
         echo "Required configuration directories are missing, please check your Dockerfile's COPY commands."; \
         exit 1; \
     fi
 
-# Switch back to a non-root user for securit
+# Fix permissions
 RUN chown -R 1001:1001 /opt/kyuubi /opt/spark
+
+# Switch back to non-root user
+USER 1001
