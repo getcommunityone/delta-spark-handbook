@@ -202,7 +202,7 @@ services:
       retries: 3
       start_period: 20s  
     volumes:
-      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
+       - ./kyuubi-conf/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf
     depends_on:
       - spark-master
       - minio
