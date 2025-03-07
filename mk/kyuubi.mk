@@ -1,6 +1,8 @@
 # Kyuubi version to download
 KYUUBI_VERSION := 1.10.0
 KYUUBI_FILE := apache-kyuubi-$(KYUUBI_VERSION)-bin.tgz
+HIVE_VERSION := 3.1.3
+HIVE_JDBC_URL="https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/3.1.3/hive-jdbc-3.1.3.jar"
 
 # Directory setup
 DELTAJARS_DIR := delta-jars
@@ -44,9 +46,11 @@ kyu-download-jars: $(DELTAJARS_DIR)
 	wget -O $(DELTAJARS_DIR)/kyuubi-spark-sql-engine_2.12-$(KYUUBI_VERSION).jar $(KYUUBI_ENGINE_JAR_URL)
 	wget -O $(DELTAJARS_DIR)/kyuubi-common_2.12-$(KYUUBI_VERSION).jar $(KYUUBI_COMMON_JAR_URL)
 	wget -O $(DELTAJARS_DIR)/kyuubi-server-plugin-$(KYUUBI_VERSION).jar $(KYUUBI_SERVER_PLUGIN_JAR_URL)
+	wget -O $(DELTAJARS_DIR)/hive-jdbc-$(HIVE_VERSION).jar $(HIVE_JDBC_URL) || { echo "Failed to download Hive JDBC driver"; exit 1; }
 	echo "Additional JAR downloads complete."
 
-# Clean target
+# Clean 
+
 .PHONY: kyu-clean
 kyu-clean:
 	rm -rf $(DELTAJARS_DIR)
