@@ -6,6 +6,8 @@
 *.pyc
 *.pyo
 *.swp
+*.pid
+*spark-env.sh
 *~
 minio-data
 .DS_Store
@@ -134,4 +136,6 @@ minio-data
 hiveserver2.pid
 hive-config/hiveserver2.pid
 spark-env.sh
+spark-conf/spark-env.sh
+hive-config/hiveserver2.pid
 spark-conf/spark-env.sh
