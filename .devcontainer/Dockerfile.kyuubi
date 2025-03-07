@@ -17,6 +17,13 @@ RUN rm -rf ${SPARK_HOME} && \
     mv /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} ${SPARK_HOME} && \
     chmod -R 755 ${SPARK_HOME} || { echo 'Failed to install Spark'; exit 1; }
 
+# Install AWS SDK dependencies
+RUN wget -P /opt/spark/jars/ \
+    https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar && \
+    wget -P /opt/spark/jars/ \
+    https://repo1.maven.org/maven2/software/amazon/awssdk/aws-sdk-java/2.17.106/aws-sdk-java-2.17.106.jar && \
+    wget -P /opt/spark/jars/ \
+    https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
  
 # Copy configuration directories into the container image
 COPY kyuubi-conf /opt/kyuubi/conf
