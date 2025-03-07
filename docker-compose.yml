@@ -69,7 +69,10 @@ services:
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
-      - ./delta-jars/aws-java-sdk-bundle-1.12.610.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.610.jar
+      - type: bind
+        source: ./delta-jars/aws-java-sdk-bundle-1.12.610.jar
+        target: /opt/hive/lib/aws-java-sdk-bundle-1.12.610.jar
+        read_only: true    
     depends_on:
       - postgres
     networks:
@@ -89,7 +92,10 @@ services:
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
-      - ./delta-jars/aws-java-sdk-bundle-1.12.610.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.610.jar
+      - type: bind
+        source: ./delta-jars/aws-java-sdk-bundle-1.12.610.jar
+        target: /opt/hive/lib/aws-java-sdk-bundle-1.12.610.jar
+        read_only: true  
     depends_on:
       - postgres
     networks:
@@ -204,6 +210,8 @@ services:
       start_period: 20s  
     volumes:
       - ./kyuubi-conf/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf
+      - ./delta-jars:/opt/kyuubi/jars
+      - ./delta-jars:/opt/spark/jars
     depends_on:
       - spark-master
       - minio
