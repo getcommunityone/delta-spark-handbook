@@ -139,3 +139,4 @@ spark-env.sh
 spark-conf/spark-env.sh
 hive-config/hiveserver2.pid
 spark-conf/spark-env.sh
+spark-conf/spark-env.sh
