@@ -59,8 +59,4 @@ delta-download-jars: delta-create-dirs
 
 	wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/kinesis/amazon-kinesis-client/3.0.0/amazon-kinesis-client-3.0.0.jar
 
-	# wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/auth/1.12.610/auth-1.12.610.jar
-	# wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/s3/1.12.610/s3-1.12.610.jar
-	# wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/utils/1.12.610/utils-1.12.610.jar
-	# wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/regions/1.12.610/regions-1.12.610.jar
-	# wget -P delta-jars https://repo1.maven.org/maven2/software/amazon/awssdk/aws-core/1.12.610/aws-core-1.12.610.jar
+ 
