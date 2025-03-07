@@ -38,7 +38,7 @@ class TestDeltaSharing:
             f"{jars_home}/delta-storage-3.3.0.jar",
             # AWS
             f"{jars_home}/hadoop-aws-3.3.2.jar",
-            f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
+            f"{jars_home}/aws-java-sdk-bundle-2.20.159.jar",
             # Kyuubi
             f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
             f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-common_2.12-1.10.0.jar"
