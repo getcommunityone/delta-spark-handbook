@@ -36,6 +36,7 @@ ENV SPARK_VERSION=3.5.5
 ENV SPARK_HOME=/opt/spark
 ENV PATH=$PATH:$SPARK_HOME/bin
 ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
+ENV JAVA_HOME=/usr/bin/java
 
 RUN curl -L  -O https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz \
     && tar xvf spark-${SPARK_VERSION}-bin-hadoop3.tgz \
@@ -47,21 +48,16 @@ RUN wget https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.3.0/delta-sp
     && wget https://repo1.maven.org/maven2/io/delta/delta-storage/3.3.0/delta-storage-3.3.0.jar -P /opt/spark/jars/ \
     && wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.2/hadoop-aws-3.3.2.jar -P /opt/spark/jars/ \
     && wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.610/aws-java-sdk-bundle-1.12.610.jar -P /opt/spark/jars/
- 
-# Download and install Kyuubi SQL engine JAR
-RUN mkdir -p /opt/spark/jars && \
-    wget https://repository.apache.org/content/groups/public/org/apache/kyuubi/kyuubi-spark-sql-engine_2.12/1.10.0/kyuubi-spark-sql-engine_2.12-1.10.0.jar \
-    -O /opt/spark/jars/kyuubi-spark-sql-engine_2.12-1.10.0.jar
 
- # Install make and wget
-RUN apt-get update && \
-apt-get install -y make wget && \
-rm -rf /var/lib/apt/lists/*
+     
+# Set environment variables for JDBC drivers
+ENV AWS_ACCESS_KEY_ID=minioadmin
+ENV AWS_SECRET_ACCESS_KEY=minioadmin
+ENV AWS_REGION=us-east-1
+ENV AWS_S3_ENDPOINT=http://minio:9000
 
-# Create working directory
 WORKDIR /app
 
- 
 # Set environment variables for JDBC drivers
 ENV AWS_ACCESS_KEY_ID=minioadmin
 ENV AWS_SECRET_ACCESS_KEY=minioadmin

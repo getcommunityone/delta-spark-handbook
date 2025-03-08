@@ -1,8 +1,7 @@
-# Use apache/kyuubi base image with specific tag
 FROM apache/kyuubi:1.10.0
 
 # Set environment variables for Spark version
-ENV SPARK_VERSION=3.5.1  # Verify the latest version
+ENV SPARK_VERSION=3.5.5 
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/opt/spark
 
@@ -28,8 +27,8 @@ RUN wget -P /opt/spark/jars/ \
     https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar
 
 # Copy configuration files
-COPY kyuubi-conf /opt/kyuubi/conf
-COPY spark-conf /opt/spark/conf
+# COPY kyuubi-conf /opt/kyuubi/conf
+# COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
 
 
@@ -40,7 +39,7 @@ RUN if [ ! -d "/opt/kyuubi/conf" ] || [ ! -d "/opt/spark/conf" ] || [ ! -d "/opt
     fi
 
 # Fix permissions
-RUN chown -R 1001:1001 /opt/kyuubi /opt/spark
+RUN chown -R 10009:10009 /opt/kyuubi /opt/spark
 
 # Switch back to non-root user
-USER 1001
+USER 10009
