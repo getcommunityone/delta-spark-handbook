@@ -4,6 +4,9 @@ FROM apache/kyuubi:1.10.0
 ENV SPARK_VERSION=3.5.5 
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/opt/spark
+ENV AWS_ACCESS_KEY_ID=minioadmin
+ENV AWS_SECRET_ACCESS_KEY=minioadmin
+
 
 # Change to root to ensure sufficient permissions for operations
 USER root
@@ -38,8 +41,4 @@ RUN if [ ! -d "/opt/kyuubi/conf" ] || [ ! -d "/opt/spark/conf" ] || [ ! -d "/opt
         exit 1; \
     fi
 
-# Fix permissions
-RUN chown -R 10009:10009 /opt/kyuubi /opt/spark
-
-# Switch back to non-root user
-USER 10009
+ 
