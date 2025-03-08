@@ -211,6 +211,9 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
