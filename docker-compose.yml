@@ -21,21 +21,7 @@ services:
       start_period: 10s
     networks:
       - spark-net
-
-  docusaurus:
-    image: node:18
-    container_name: docusaurus
-    working_dir: /app
-    volumes:
-      - ./docs:/app
-    ports:
-      - "3000:3000"
-    command: ["npm", "run", "start"]
-    depends_on:
-      - spark-master
-    networks:
-      - spark-net
-
+ 
   postgres:
     hostname: postgres
     container_name: postgres
@@ -101,6 +87,22 @@ services:
     networks:
       - spark-net
 
+  spark-init:
+    image: bitnami/spark:3.5.4
+    container_name: spark-init
+    user: "0"  # Run as root to avoid permission issues
+    volumes:
+      - ./spark-conf:/opt/bitnami/spark/conf:rw
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Fixing Spark configuration permissions..."
+        chown -R 1001:1001 /opt/bitnami/spark/conf
+        chmod -R u+rwX,g+rX,o+rX /opt/bitnami/spark/conf
+        echo "Permissions fixed."
+    networks:
+      - spark-net
+
   spark-master:
     image: bitnami/spark:3.5.4
     container_name: spark-master
@@ -117,6 +119,8 @@ services:
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf:rw,z
       - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
+      - ./entrypoint.sh:/opt/bitnami/spark/entrypoint.sh  # Add the script
+    entrypoint: ["/bin/bash", "/opt/bitnami/spark/entrypoint.sh"]  # Run the script before Spark starts
     networks:
       - spark-net
     deploy:
@@ -130,8 +134,12 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      - minio
+      spark-init:
+        condition: service_completed_successfully  # Ensure it runs after `spark-init`
+      minio:
+        condition: service_healthy  # Ensure it runs after `minio`
 
+      
   spark-worker:
     image: bitnami/spark:3.5.4
     container_name: spark-worker
@@ -146,7 +154,7 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
     volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
+      - ./spark-conf:/opt/bitnami/spark/conf:rw,z
       - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
     depends_on:
       - spark-master
@@ -195,6 +203,7 @@ services:
     build: 
       context: .
       dockerfile: .devcontainer/Dockerfile.kyuubi
+    user: "10009"
     ports:
       - "10009:10009"
       - "10099:10099"
@@ -210,8 +219,7 @@ services:
       start_period: 20s  
     volumes:
       - ./kyuubi-conf/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf
-      - ./delta-jars:/opt/kyuubi/jars
-      - ./delta-jars:/opt/spark/jars
+      - ./spark-conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     depends_on:
       - spark-master
       - minio
@@ -220,6 +228,7 @@ services:
 
  
   dev:
+    container_name: dev
     build: 
       context: .
       dockerfile: .devcontainer/Dockerfile.dev
