@@ -213,6 +213,9 @@ services:
       - KYUUBI_AUTHENTICATION=NONE
       - KYUUBI_FRONTEND_REST_AUTHENTICATION_TYPE=NONE
       - KYUUBI_KINIT_ENABLED=false
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
