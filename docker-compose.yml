@@ -203,7 +203,6 @@ services:
     build: 
       context: .
       dockerfile: .devcontainer/Dockerfile.kyuubi
-    user: "10009"
     ports:
       - "10009:10009"
       - "10099:10099"
@@ -211,6 +210,9 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
+      - KYUUBI_AUTHENTICATION=NONE
+      - KYUUBI_FRONTEND_REST_AUTHENTICATION_TYPE=NONE
+      - KYUUBI_KINIT_ENABLED=false
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
