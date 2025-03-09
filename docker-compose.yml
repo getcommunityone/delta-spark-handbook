@@ -22,20 +22,6 @@ services:
     networks:
       - spark-net
 
-  docusaurus:
-    image: node:18
-    container_name: docusaurus
-    working_dir: /app
-    volumes:
-      - ./docs:/app
-    ports:
-      - "3000:3000"
-    command: ["npm", "run", "start"]
-    depends_on:
-      - spark-master
-    networks:
-      - spark-net
-
   postgres:
     hostname: postgres
     container_name: postgres
@@ -95,8 +81,24 @@ services:
     networks:
       - spark-net
 
-  spark-master:
+  spark-init:
     image: bitnami/spark:3.5.4
+    container_name: spark-init
+    user: "0"  # Run as root to avoid permission issues
+    volumes:
+      - ./spark-conf:/opt/bitnami/spark/conf:rw
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Fixing Spark configuration permissions..."
+        chown -R 1001:1001 /opt/bitnami/spark/conf
+        chmod -R u+rwX,g+rX,o+rX /opt/bitnami/spark/conf
+        echo "Permissions fixed."
+    networks:
+      - spark-net
+
+  spark-master:
+    image: bitnami/spark:3.5.5
     container_name: spark-master
     user: "1001"
     environment:
@@ -124,10 +126,13 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      - minio
-
+      spark-init:
+        condition: service_completed_successfully  # Ensure it runs after `spark-init`
+      minio:
+        condition: service_healthy  # Ensure it runs after `minio`
+        
   spark-worker:
-    image: bitnami/spark:3.5.4
+    image: bitnami/spark:3.5.5
     container_name: spark-worker
     user: "1001"
     environment:
