@@ -32,7 +32,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && usermod -aG docker vscode
 
 # Install Spark and set up environment
-ENV SPARK_VERSION=3.5.4
+ENV SPARK_VERSION=3.5.5
 ENV SPARK_HOME=/opt/spark
 ENV PATH=$PATH:$SPARK_HOME/bin
 ENV PYTHONPATH=$SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.9.5-src.zip:$PYTHONPATH
