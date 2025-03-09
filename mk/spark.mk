@@ -1,4 +1,4 @@
-SPARK_VERSION=3.5.4
+SPARK_VERSION=3.5.5
 DELTA_JARS_DIR=delta-jars
 CONTAINER_NAME=temp-spark-container
 
