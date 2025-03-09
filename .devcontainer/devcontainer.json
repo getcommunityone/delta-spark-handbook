@@ -11,7 +11,7 @@
       }
     }
   },
-  "forwardPorts": [10009, 19090, 8080, 9000, 9001],
+  "forwardPorts": [19090, 8080, 9000, 9001],
   "postCreateCommand": "sudo groupadd -f docker && sudo usermod -aG docker vscode && pip install -r requirements.txt",
   "remoteUser": "vscode",
   "mounts": [

@@ -16,12 +16,40 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     except:
         print("No existing Spark session to stop")
 
+    # Define the base directory
+    jars_home = '/workspace/delta-jars'
+
+    # Required core JARs
+    jars_list = [
+        # Delta Lake
+        f"{jars_home}/delta-spark_2.12-3.3.0.jar",
+        f"{jars_home}/delta-storage-3.3.0.jar",
+        # AWS
+        f"{jars_home}/hadoop-aws-3.3.2.jar",
+        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
+        # Kyuubi
+        f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
+        f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-common_2.12-1.10.0.jar"
+    ]
+
+    # Convert to comma-separated string
+    jars = ",".join(jars_list)
+
     builder = (SparkSession.builder
                .appName(app_name)
                .master("local[*]")
-               .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0,org.apache.hadoop:hadoop-aws:3.3.1")
+               # .config("spark.jars.packages", packages_string)
                .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-               .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog"))
+               .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+               .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12")
+               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+               .config("spark.jars", jars)
+               .config("spark.driver.extraClassPath", jars)
+               .config("spark.executor.extraClassPath", jars)
+               .config("spark.sql.warehouse.dir", "s3a://delta")
+               .config("spark.hadoop.hive.metastore.uris", "thrift://hive-metastore:9083")
+               .enableHiveSupport()
+               )
 
     # Configure S3 access if credentials are provided
     if aws_access_key and aws_secret_key:
