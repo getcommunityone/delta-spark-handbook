@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType, TimestampType, DoubleType
 import os
 from datetime import datetime
+from pyspark.sql import functions as F
 
 
 def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
@@ -25,7 +26,7 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     # Configure S3 access if credentials are provided
     if aws_access_key and aws_secret_key:
         builder = (builder
-                   .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000")
+                   .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
                    .config("spark.hadoop.fs.s3a.access.key", aws_access_key)
                    .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key)
                    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
@@ -74,9 +75,16 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         mode: Write mode (overwrite, append, etc.).
         partition_by: Column(s) to partition the data by.
     """
+
+    full_table_name = "unknown"
+
     try:
+
         # Ensure the database exists
-        spark.sql(f"CREATE DATABASE IF NOT EXISTS {database_name}")
+        spark.sql(
+            f"CREATE DATABASE IF NOT EXISTS {database_name} LOCATION 's3a://delta/{database_name}/{database_name}.db'")
+
+        table_path = f"s3a://delta/{database_name}/{table_name}"
 
         # Infer schema from file
         schema = infer_schema_from_file(spark, file_path)
@@ -84,23 +92,45 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         # Read the CSV file with the inferred schema
         df = spark.read.option("header", "true").schema(schema).csv(file_path)
 
+        # Convert all column names to lowercase
+        for col_name in df.columns:
+            df = df.withColumnRenamed(col_name, col_name.lower())
+
+        if "start" in df.columns:
+            df = df.withColumn("start_date", F.to_date(
+                F.col("start"), "yyyy-MM-dd"))
+            df = df.withColumn("year", F.year(F.col("start_date")))
+            df = df.withColumn("month", F.month(F.col("start_date")))
+
+        # Ensure DATE is properly converted to a date type
+        if "date" in df.columns:
+            df = df.withColumn("date", F.to_date(F.col("date"), "yyyy-MM-dd"))
+            df = df.withColumn("year", F.year(F.col("date")))
+            df = df.withColumn("month", F.month(F.col("date")))
+
         # Add metadata columns
-        df = df.withColumn("ingestion_timestamp",
-                           spark.sql("current_timestamp()"))
-        df = df.withColumn("source_file", spark.sql(
-            f"'{file_path.split('/')[-1]}'"))
+        df = df.withColumn("ingestion_timestamp", F.current_timestamp())
+        df = df.withColumn("source_file", F.lit(file_path.split('/')[-1]))
 
         # Define the full table name
         full_table_name = f"{database_name}.{table_name}"
 
         # Write to Delta Lake using saveAsTable
         writer = df.write.format("delta").mode(
-            mode).option("overwriteSchema", "true")
+            mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
 
         if partition_by:
             writer = writer.partitionBy(partition_by)
 
-        writer.saveAsTable(full_table_name)
+        # writer.saveAsTable(full_table_name)
+        writer.save(table_path)
+
+        # Then create/refresh the table definition pointing to that location
+        spark.sql(f"""
+            CREATE TABLE IF NOT EXISTS {database_name}.{table_name}
+            USING DELTA
+            LOCATION '{table_path}'
+        """)
 
         print(f"Successfully loaded {file_path} into table {full_table_name}")
         return True
