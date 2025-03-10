@@ -17,7 +17,22 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         print("No existing Spark session to stop")
 
     # Define the base directory
-    jars_home = '/workspace/delta-jars'
+    # First try to find JAR files in various locations
+    possible_jar_locations = [
+        os.path.join(os.getcwd(), 'delta-jars'),  # Current directory
+        os.path.join(os.path.dirname(os.getcwd()), 'delta-jars'),  # Parent directory
+        '/workspace/delta-jars',              # Inside Docker
+        '/workspace/delta-spark-handbook/delta-jars'  # Inside Docker
+
+    ]
+    
+    # Try to find the jars directory
+    jars_home = None
+    for location in possible_jar_locations:
+        if os.path.exists(location):
+            print(f"Found JAR directory at: {location}")
+            jars_home = location
+            break
 
     # Required core JARs
     jars_list = [
@@ -25,11 +40,11 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         f"{jars_home}/delta-spark_2.12-3.3.0.jar",
         f"{jars_home}/delta-storage-3.3.0.jar",
         # AWS
-        f"{jars_home}/hadoop-aws-3.3.2.jar",
+        f"{jars_home}/hadoop-aws-3.3.4.jar",
         f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
         # Kyuubi
-        f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
-        f"{jars_home}/kyuubi/externals/engines/spark/kyuubi-common_2.12-1.10.0.jar"
+        f"{jars_home}/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
+        f"{jars_home}/kyuubi-common_2.12-1.10.0.jar"
     ]
 
     # Convert to comma-separated string
@@ -259,10 +274,7 @@ if __name__ == "__main__":
 
     # Update S3 path to use s3a protocol
     ehr_s3_path = "s3a://ehr/"
-    # Configure additional S3 settings for MinIO
-    spark = create_spark_session(
-        aws_access_key=aws_access_key, aws_secret_key=aws_secret_key)
-
+ 
     load_ehr_data_to_delta(ehr_s3_path, database_name,
                            aws_access_key, aws_secret_key)
 
