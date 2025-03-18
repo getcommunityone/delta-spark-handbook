@@ -5,95 +5,93 @@ from datetime import datetime
 from pyspark.sql import functions as F
 
 
-def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
-    """
-    Create and return a Spark session configured for Delta Lake with S3 access.
-    """
-
+def create_spark_session():
+    """Create a Spark session configured for Delta Lake with S3 access."""
+    # Stop any existing Spark session
     try:
-        SparkSession.builder.getOrCreate().stop()
-        print("Stopped existing Spark session")
+        spark.stop()
     except:
-        print("No existing Spark session to stop")
+        pass
 
-    # Define the base directory
-    # First try to find JAR files in various locations
-    possible_jar_locations = [
-        os.path.join(os.getcwd(), 'delta-jars'),  # Current directory
-        os.path.join(os.path.dirname(os.getcwd()), 'delta-jars'),  # Parent directory
-        '/workspace/delta-jars',              # Inside Docker
-        '/workspace/delta-spark-handbook/delta-jars'  # Inside Docker
-
-    ]
-    
-    # Try to find the jars directory
-    jars_home = None
-    for location in possible_jar_locations:
-        if os.path.exists(location):
-            print(f"Found JAR directory at: {location}")
-            jars_home = location
-            break
-
-    # Required core JARs
-    jars_list = [
-        # Delta Lake
-        f"{jars_home}/delta-spark_2.12-3.3.0.jar",
-        f"{jars_home}/delta-storage-3.3.0.jar",
-        # AWS
-        f"{jars_home}/hadoop-aws-3.3.4.jar",
-        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
-        # Kyuubi
-        f"{jars_home}/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
-        f"{jars_home}/kyuubi-common_2.12-1.10.0.jar"
+    # Define JAR locations
+    jars_home = os.path.join(os.getcwd(), 'delta-jars')
+    required_jars = [
+        'delta-spark_2.12-3.3.0.jar',
+        'delta-storage-3.3.0.jar',
+        'hadoop-aws-3.3.4.jar',
+        'aws-java-sdk-bundle-1.12.782.jar',
+        'postgresql-42.7.3.jar'  # Added PostgreSQL JDBC driver
     ]
 
-    # Convert to comma-separated string
-    jars = ",".join(jars_list)
+    # Verify all required JARs exist
+    for jar in required_jars:
+        jar_path = os.path.join(jars_home, jar)
+        if not os.path.exists(jar_path):
+            raise Exception(f"Required JAR not found: {jar_path}")
 
-    builder = (SparkSession.builder
-               .appName(app_name)
-               .master("local[*]")
-               # .config("spark.jars.packages", packages_string)
-               .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-               .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-               .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12")
-               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-               .config("spark.jars", jars)
-               .config("spark.driver.extraClassPath", jars)
-               .config("spark.executor.extraClassPath", jars)
-               .config("spark.sql.warehouse.dir", "s3a://delta")
-               .config("spark.hadoop.hive.metastore.uris", "thrift://hive-metastore:9083")
-               .enableHiveSupport()
-               )
+    # Create Hadoop configuration directory
+    hadoop_conf_dir = os.path.join(os.getcwd(), 'hadoop-conf')
+    os.makedirs(hadoop_conf_dir, exist_ok=True)
 
-    # Configure S3 access if credentials are provided
-    if aws_access_key and aws_secret_key:
-        builder = (builder
-                   .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
-                   .config("spark.hadoop.fs.s3a.access.key", aws_access_key)
-                   .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key)
-                   .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-                   .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
-                   # IMPORTANT for MinIO
-                   .config("spark.hadoop.fs.s3a.path.style.access", "true")
-                   # Disable SSL for local MinIO
-                   .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
-                   )
-    else:
-        # Use instance profile or environment variables for authentication
-        builder = builder.config("spark.hadoop.fs.s3a.aws.credentials.provider",
-                                 "com.amazonaws.auth.DefaultAWSCredentialsProviderChain")
+    # Write core-site.xml with S3 configuration
+    core_site_xml = os.path.join(hadoop_conf_dir, 'core-site.xml')
+    with open(core_site_xml, 'w') as f:
+        f.write('''<?xml version="1.0"?>
+<configuration>
+    <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://localhost:9000</value>
+    </property>
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>minioadmin</value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>minioadmin</value>
+    </property>
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+</configuration>''')
 
-    # Additional S3 optimizations
-    builder = (builder
-               .config("spark.hadoop.fs.s3a.virtual.hosted.style", "false")
-               .config("spark.hadoop.fs.s3a.signing-algorithm", "S3SignerType")
-               .config("spark.hadoop.fs.s3a.connection.maximum", 100)
-               .config("spark.hadoop.fs.s3a.experimental.input.fadvise", "sequential")
-               .config("spark.hadoop.fs.s3a.fast.upload", "true")
-               .config("spark.hadoop.fs.s3a.block.size", 128 * 1024 * 1024))
+    # Set environment variables
+    os.environ['HADOOP_CONF_DIR'] = hadoop_conf_dir
+    os.environ['SPARK_HOME'] = '/opt/spark'
+    os.environ['SPARK_CLASSPATH'] = os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])
+    os.environ['HADOOP_CLASSPATH'] = os.environ['SPARK_CLASSPATH']
 
-    return builder.getOrCreate()
+    # Create Spark session
+    spark = SparkSession.builder \
+        .appName("Delta Lake EHR Data Ingestion") \
+        .master("local[*]") \
+        .config("spark.jars", ",".join([os.path.join(jars_home, jar) for jar in required_jars])) \
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+        .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000") \
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
+        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+        .config("spark.delta.logStore.class", "io.delta.storage.S3SingleDriverLogStore") \
+        .config("spark.hadoop.fs.s3a.fast.upload", "true") \
+        .config("spark.hadoop.fs.s3a.multipart.size", "104857600") \
+        .config("spark.sql.warehouse.dir", "s3a://wba/warehouse") \
+        .config("spark.sql.catalogImplementation", "hive") \
+        .config("spark.hadoop.javax.jdo.option.ConnectionURL", "jdbc:postgresql://localhost:5432/metastore_db") \
+        .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver") \
+        .config("spark.hadoop.javax.jdo.option.ConnectionUserName", "admin") \
+        .config("spark.hadoop.javax.jdo.option.ConnectionPassword", "admin") \
+        .config("spark.driver.extraClassPath", os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])) \
+        .config("spark.executor.extraClassPath", os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])) \
+        .getOrCreate()
+
+    return spark
 
 
 def infer_schema_from_file(spark, file_path, sample_size=1000):
@@ -109,25 +107,12 @@ def infer_schema_from_file(spark, file_path, sample_size=1000):
 def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwrite", partition_by=None):
     """
     Load a CSV file into a Delta table using a database name.
-
-    Args:
-        spark: SparkSession object.
-        file_path: Path to the CSV file (can be S3 URI).
-        database_name: Name of the database to store the Delta table.
-        table_name: Name of the table to create.
-        mode: Write mode (overwrite, append, etc.).
-        partition_by: Column(s) to partition the data by.
     """
-
     full_table_name = "unknown"
 
     try:
-
         # Ensure the database exists
-        spark.sql(
-            f"CREATE DATABASE IF NOT EXISTS {database_name} LOCATION 's3a://delta/{database_name}/{database_name}.db'")
-
-        table_path = f"s3a://delta/{database_name}/{table_name}"
+        spark.sql(f"CREATE DATABASE IF NOT EXISTS {database_name}")
 
         # Infer schema from file
         schema = infer_schema_from_file(spark, file_path)
@@ -140,8 +125,7 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
             df = df.withColumnRenamed(col_name, col_name.lower())
 
         if "start" in df.columns:
-            df = df.withColumn("start_date", F.to_date(
-                F.col("start"), "yyyy-MM-dd"))
+            df = df.withColumn("start_date", F.to_date(F.col("start"), "yyyy-MM-dd"))
             df = df.withColumn("year", F.year(F.col("start_date")))
             df = df.withColumn("month", F.month(F.col("start_date")))
 
@@ -159,27 +143,17 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         full_table_name = f"{database_name}.{table_name}"
 
         # Write to Delta Lake using saveAsTable
-        writer = df.write.format("delta").mode(
-            mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
+        writer = df.write.format("delta").mode(mode).option("overwriteSchema", "true")
 
         if partition_by:
             writer = writer.partitionBy(partition_by)
 
-        # writer.saveAsTable(full_table_name)
-        writer.save(table_path)
-
-        # Then create/refresh the table definition pointing to that location
-        spark.sql(f"""
-            CREATE TABLE IF NOT EXISTS {database_name}.{table_name}
-            USING DELTA
-            LOCATION '{table_path}'
-        """)
+        writer.saveAsTable(full_table_name)
 
         print(f"Successfully loaded {file_path} into table {full_table_name}")
         return True
     except Exception as e:
-        print(
-            f"Error loading {file_path} into table {full_table_name}: {str(e)}")
+        print(f"Error loading {file_path} into table {full_table_name}: {str(e)}")
         return False
 
 
@@ -216,8 +190,7 @@ def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_
         aws_secret_key: AWS secret key (optional).
     """
     # Create Spark session
-    spark = create_spark_session(
-        aws_access_key=aws_access_key, aws_secret_key=aws_secret_key)
+    spark = create_spark_session()
 
     # Define partition strategies for specific tables
     partition_config = {
