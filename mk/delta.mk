@@ -33,5 +33,4 @@ delta-download-jars: delta-create-dirs
 	wget -P delta-jars https://repo1.maven.org/maven2/org/codehaus/woodstox/stax2-api/4.2/stax2-api-4.2.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.8.0/commons-configuration2-2.8.0.jar
 
-
 	@echo "JARs downloaded successfully"
