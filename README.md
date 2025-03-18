@@ -8,8 +8,6 @@ This repo has all the resources you need to become an amazing data engineer focu
 
 ## Architecture
 
-I'll write a comprehensive description of the data pipeline architecture for your README.
-
 # Data Pipeline Architecture
 
 This data pipeline architecture implements a modern data processing and storage solution using a stack of open-source technologies. The system is containerized using Docker and Docker Compose for easy deployment and scalability.
