@@ -116,6 +116,13 @@ pycodestyle*.py
 # For IDE settings
 .vscode
 delta-jars/
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+spark-home/jars/
+=======
+>>>>>>> origin/dev-r1
+>>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
 # For Terraform
 **/.terraform/*
 *.tfstate

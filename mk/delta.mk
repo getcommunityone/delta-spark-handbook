@@ -23,14 +23,42 @@ delta-download-jars: delta-create-dirs
 	@rm -f delta-jars/delta-storage-3.3.0.jar
 	@rm -f delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar
 	@rm -f delta-jars/aws-java-sdk-bundle-1.12.782.jar
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+	@rm -f delta-jars/postgresql-42.7.3.jar
+=======
+>>>>>>> origin/dev-r1
+>>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.3.0/delta-spark_2.12-3.3.0.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/3.3.0/delta-storage-3.3.0.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
 	wget -P delta-jars https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.782/aws-java-sdk-bundle-1.12.782.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hive/hive-jdbc/3.1.3/hive-jdbc-3.1.3.jar
+<<<<<<< HEAD
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-common/3.4.1/hadoop-common-3.4.1.jar
+=======
+<<<<<<< HEAD
+	wget -P delta-jars https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
+	# Hadoop dependencies
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-common/3.4.1/hadoop-common-3.4.1.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client/3.4.1/hadoop-client-3.4.1.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-runtime/3.4.1/hadoop-client-runtime-3.4.1.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-api/3.4.1/hadoop-client-api-3.4.1.jar
+	# Additional dependencies
+=======
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-common/3.4.1/hadoop-common-3.4.1.jar
+>>>>>>> origin/dev-r1
+>>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
 	wget -P delta-jars https://repo1.maven.org/maven2/com/fasterxml/woodstox/woodstox-core/6.2.4/woodstox-core-6.2.4.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/codehaus/woodstox/stax2-api/4.2/stax2-api-4.2.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.8.0/commons-configuration2-2.8.0.jar
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/dev-r1
+>>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
 	@echo "JARs downloaded successfully"
