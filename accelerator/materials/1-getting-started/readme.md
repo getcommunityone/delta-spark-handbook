@@ -309,6 +309,29 @@ kyuubi.engine.pool.size=2
    sudo chmod a+rx ./spark-conf/spark-env.sh
 ```
 
+7. NoClassDefError
+```org.apache.kyuubi.KyuubiSQLException:org.apache.kyuubi.KyuubiSQLException: Exception in thread "main" java.lang.NoClassDefFoundError: software/amazon/awssdk/services/s3/model/S3Exception
+	at java.lang.ClassLoader.defineClass1(Native Method)
+	at java.lang.ClassLoader.defineClass(ClassLoader.java:756)
+	at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:142)
+	at java.net.URLClassLoader.defineClass(URLClassLoader.java:473)
+	at java.net.URLClassLoader.access$100(URLClassLoader.java:74)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:369)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:363)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:362)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:352)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:348)
+	at org.apache.hadoop.conf.Configuration.getClassByNameOrNull(Configuration.java:2625)
+	at org.apache.hadoop.conf.Configuration.getClassByName(Configuration.java:2590)
+	at org.apache.hadoop.conf.Configuration.getClass(Configuration.java:2686)
+	at org.apache.hadoop.fs.FileSystem.getFileSystemClass(FileSystem.java:3431)
+	at org.apache.hadoop.fs.FileSystem.createFileSystem(FileSystem.java:3466)
+...
+
 ### Logs
 View service logs:
 ```bash
