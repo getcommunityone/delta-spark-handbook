@@ -252,7 +252,6 @@ services:
       - SPARK_SQL_CATALOG_IMPLEMENTATION=org.apache.spark.sql.delta.catalog.DeltaCatalog
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/conf
-      - HADOOP_CLASSPATH=/opt/spark/jars/*
       - HADOOP_OPTS="-Dfs.s3a.endpoint=http://minio:9000 -Dfs.s3a.access.key=minioadmin -Dfs.s3a.secret.key=minioadmin -Dfs.s3a.path.style.access=true"
       - SPARK_CLASSPATH=/opt/spark/jars/*
       - SPARK_DRIVER_EXTRA_CLASSPATH=/opt/spark/jars/*
