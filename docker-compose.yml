@@ -94,15 +94,9 @@ services:
         chown -R 1001:1001 /opt/bitnami/spark/conf
         chmod -R u+rwX,g+rX,o+rX /opt/bitnami/spark/conf
         echo "Permissions fixed."
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
     depends_on:
       minio:
         condition: service_healthy  # Ensure it runs after minio is healthy
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     networks:
       - spark-net
 
@@ -116,28 +110,14 @@ services:
       - SPARK_MASTER_WEBUI_PORT=8080
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf:rw,z
-<<<<<<< HEAD
-      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
-=======
-<<<<<<< HEAD
       - ./delta-jars:/opt/bitnami/spark/jars
-=======
-      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     networks:
       - spark-net
     deploy:
@@ -152,21 +132,9 @@ services:
       retries: 3
     depends_on:
       spark-init:
-<<<<<<< HEAD
-        condition: service_completed_successfully  # Ensure it runs after `spark-init`
-      minio:
-        condition: service_healthy  # Ensure it runs after `minio`
-=======
-<<<<<<< HEAD
         condition: service_completed_successfully
       minio:
         condition: service_healthy
-=======
-        condition: service_completed_successfully  # Ensure it runs after `spark-init`
-      minio:
-        condition: service_healthy  # Ensure it runs after `minio`
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
         
   spark-worker:
     image: bitnami/spark:3.5.5
@@ -181,23 +149,11 @@ services:
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
-<<<<<<< HEAD
-    volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
-      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
-=======
-<<<<<<< HEAD
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf
       - ./delta-jars:/opt/bitnami/spark/jars
-=======
-    volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
-      - ./delta-jars:/opt/bitnami/spark/jars  # Updated path
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     depends_on:
       - spark-master
     networks:
@@ -276,22 +232,13 @@ services:
       - ..:/workspace:cached
       - delta-spark-cache:/root/.cache
       - /var/run/docker.sock:/var/run/docker.sock
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
       - ./delta-jars:/opt/spark/jars
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     user: vscode
     command: sleep infinity
     environment:
       - PYTHONPATH=/workspace
       - SPARK_HOME=/opt/spark
       - DEBIAN_FRONTEND=noninteractive
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
@@ -310,9 +257,6 @@ services:
       - SPARK_CLASSPATH=/opt/spark/jars/*
       - SPARK_DRIVER_EXTRA_CLASSPATH=/opt/spark/jars/*
       - SPARK_EXECUTOR_EXTRA_CLASSPATH=/opt/spark/jars/*
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
     depends_on:
       - kyuubi
       - spark-master
