@@ -5,9 +5,7 @@ from datetime import datetime
 from pyspark.sql import functions as F
 
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
+
 def create_spark_session():
     """Create a Spark session configured for Delta Lake with S3 access."""
     # Stop any existing Spark session
@@ -95,8 +93,7 @@ def create_spark_session():
         .getOrCreate()
 
     return spark
-=======
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
 def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
     """
     Create and return a Spark session configured for Delta Lake with S3 access.
@@ -186,11 +183,7 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
                .config("spark.hadoop.fs.s3a.block.size", 128 * 1024 * 1024))
 
     return builder.getOrCreate()
-<<<<<<< HEAD
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
-
+ 
 
 def infer_schema_from_file(spark, file_path, sample_size=1000):
     """
@@ -205,18 +198,8 @@ def infer_schema_from_file(spark, file_path, sample_size=1000):
 def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwrite", partition_by=None):
     """
     Load a CSV file into a Delta table using a database name.
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-    """
-    full_table_name = "unknown"
-
-    try:
-        # Ensure the database exists
-        spark.sql(f"CREATE DATABASE IF NOT EXISTS {database_name}")
-=======
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
-
+ 
+ 
     Args:
         spark: SparkSession object.
         file_path: Path to the CSV file (can be S3 URI).
@@ -225,7 +208,7 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         mode: Write mode (overwrite, append, etc.).
         partition_by: Column(s) to partition the data by.
     """
-
+    
     full_table_name = "unknown"
 
     try:
@@ -235,10 +218,6 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
             f"CREATE DATABASE IF NOT EXISTS {database_name} LOCATION 's3a://delta/{database_name}/{database_name}.db'")
 
         table_path = f"s3a://delta/{database_name}/{table_name}"
-<<<<<<< HEAD
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
 
         # Infer schema from file
         schema = infer_schema_from_file(spark, file_path)
@@ -251,17 +230,10 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
             df = df.withColumnRenamed(col_name, col_name.lower())
 
         if "start" in df.columns:
-<<<<<<< HEAD
+
             df = df.withColumn("start_date", F.to_date(
                 F.col("start"), "yyyy-MM-dd"))
-=======
-<<<<<<< HEAD
-            df = df.withColumn("start_date", F.to_date(F.col("start"), "yyyy-MM-dd"))
-=======
-            df = df.withColumn("start_date", F.to_date(
-                F.col("start"), "yyyy-MM-dd"))
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
             df = df.withColumn("year", F.year(F.col("start_date")))
             df = df.withColumn("month", F.month(F.col("start_date")))
 
@@ -279,29 +251,19 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         full_table_name = f"{database_name}.{table_name}"
 
         # Write to Delta Lake using saveAsTable
-<<<<<<< HEAD
+
         writer = df.write.format("delta").mode(
             mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
-=======
-<<<<<<< HEAD
-        writer = df.write.format("delta").mode(mode).option("overwriteSchema", "true")
-=======
-        writer = df.write.format("delta").mode(
-            mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
 
         if partition_by:
             writer = writer.partitionBy(partition_by)
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
+
         writer.saveAsTable(full_table_name)
-=======
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
         # writer.saveAsTable(full_table_name)
-        writer.save(table_path)
+
 
         # Then create/refresh the table definition pointing to that location
         spark.sql(f"""
@@ -309,25 +271,15 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
             USING DELTA
             LOCATION '{table_path}'
         """)
-<<<<<<< HEAD
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
 
         print(f"Successfully loaded {file_path} into table {full_table_name}")
         return True
     except Exception as e:
-<<<<<<< HEAD
-        print(
-            f"Error loading {file_path} into table {full_table_name}: {str(e)}")
-=======
-<<<<<<< HEAD
+
         print(f"Error loading {file_path} into table {full_table_name}: {str(e)}")
-=======
-        print(
-            f"Error loading {file_path} into table {full_table_name}: {str(e)}")
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
+
         return False
 
 
@@ -364,17 +316,10 @@ def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_
         aws_secret_key: AWS secret key (optional).
     """
     # Create Spark session
-<<<<<<< HEAD
+
     spark = create_spark_session(
         aws_access_key=aws_access_key, aws_secret_key=aws_secret_key)
-=======
-<<<<<<< HEAD
-    spark = create_spark_session()
-=======
-    spark = create_spark_session(
-        aws_access_key=aws_access_key, aws_secret_key=aws_secret_key)
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+
 
     # Define partition strategies for specific tables
     partition_config = {
