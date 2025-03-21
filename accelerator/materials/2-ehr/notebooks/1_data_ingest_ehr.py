@@ -5,38 +5,42 @@ from datetime import datetime
 from pyspark.sql import functions as F
 
 
-def create_spark_session():
-    """Create a Spark session configured for Delta Lake with S3 access."""
+def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
+    """
+    Create and return a Spark session configured for Delta Lake with S3 access.
+    """
     # Stop any existing Spark session
     try:
-        spark.stop()
+        SparkSession.builder.getOrCreate().stop()
+        print("Stopped existing Spark session")
     except:
-        pass
+        print("No existing Spark session to stop")
 
-    # Define JAR locations
+    # Define the base directory for JAR files
     jars_home = os.path.join(os.getcwd(), 'delta-jars')
-    required_jars = [
-        'delta-spark_2.12-3.3.0.jar',
-        'delta-storage-3.3.0.jar',
-        'hadoop-aws-3.3.4.jar',
-        'aws-java-sdk-bundle-1.12.782.jar',
-        'postgresql-42.7.3.jar'  # Added PostgreSQL JDBC driver
+    if not os.path.exists(jars_home):
+        raise Exception(f"JAR directory not found at: {jars_home}")
+
+    # Required JARs
+    jar_locations = [
+        f"{jars_home}/delta-spark_2.12-3.3.0.jar",
+        f"{jars_home}/delta-storage-3.3.0.jar",
+        f"{jars_home}/hadoop-aws-3.3.4.jar",
+        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
+        f"{jars_home}/postgresql-42.7.3.jar"
     ]
 
-    # Verify all required JARs exist
-    for jar in required_jars:
-        jar_path = os.path.join(jars_home, jar)
-        if not os.path.exists(jar_path):
-            raise Exception(f"Required JAR not found: {jar_path}")
+    # Verify all JARs exist
+    for jar in jar_locations:
+        if not os.path.exists(jar):
+            raise Exception(f"Required JAR not found: {jar}")
 
     # Create Hadoop configuration directory
-    hadoop_conf_dir = os.path.join(os.getcwd(), 'hadoop-conf')
+    hadoop_conf_dir = "hadoop-conf"
     os.makedirs(hadoop_conf_dir, exist_ok=True)
 
     # Write core-site.xml with S3 configuration
-    core_site_xml = os.path.join(hadoop_conf_dir, 'core-site.xml')
-    with open(core_site_xml, 'w') as f:
-        f.write('''<?xml version="1.0"?>
+    core_site_xml = f"""<?xml version="1.0"?>
 <configuration>
     <property>
         <name>fs.s3a.impl</name>
@@ -48,170 +52,74 @@ def create_spark_session():
     </property>
     <property>
         <name>fs.s3a.access.key</name>
-        <value>minioadmin</value>
+        <value>{aws_access_key or 'minioadmin'}</value>
     </property>
     <property>
         <name>fs.s3a.secret.key</name>
-        <value>minioadmin</value>
+        <value>{aws_secret_key or 'minioadmin'}</value>
     </property>
     <property>
         <name>fs.s3a.path.style.access</name>
         <value>true</value>
     </property>
-</configuration>''')
+    <property>
+        <name>fs.s3a.connection.ssl.enabled</name>
+        <value>false</value>
+    </property>
+</configuration>"""
+
+    with open(f"{hadoop_conf_dir}/core-site.xml", "w") as f:
+        f.write(core_site_xml)
 
     # Set environment variables
-    os.environ['HADOOP_CONF_DIR'] = hadoop_conf_dir
-    os.environ['SPARK_HOME'] = '/opt/spark'
-    os.environ['SPARK_CLASSPATH'] = os.pathsep.join(
-        [os.path.join(jars_home, jar) for jar in required_jars])
-    os.environ['HADOOP_CLASSPATH'] = os.environ['SPARK_CLASSPATH']
+    os.environ["HADOOP_CONF_DIR"] = os.path.abspath(hadoop_conf_dir)
+    os.environ["SPARK_HOME"] = "/opt/spark"
+    os.environ["SPARK_CLASSPATH"] = ":".join([os.path.abspath(jar) for jar in jar_locations])
+    os.environ["HADOOP_CLASSPATH"] = os.environ["SPARK_CLASSPATH"]
 
-    # Create Spark session
-    spark = SparkSession.builder \
-        .appName("Delta Lake EHR Data Ingestion") \
-        .master("local[*]") \
-        .config("spark.jars", ",".join([os.path.join(jars_home, jar) for jar in required_jars])) \
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-        .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000") \
-        .config("spark.hadoop.fs.s3a.access.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin") \
-        .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-        .config("spark.delta.logStore.class", "io.delta.storage.S3SingleDriverLogStore") \
-        .config("spark.hadoop.fs.s3a.fast.upload", "true") \
-        .config("spark.hadoop.fs.s3a.multipart.size", "104857600") \
-        .config("spark.sql.warehouse.dir", "s3a://wba/warehouse") \
-        .config("spark.sql.catalogImplementation", "hive") \
-        .config("spark.hadoop.javax.jdo.option.ConnectionURL", "jdbc:postgresql://localhost:5432/metastore_db") \
-        .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver") \
-        .config("spark.hadoop.javax.jdo.option.ConnectionUserName", "admin") \
-        .config("spark.hadoop.javax.jdo.option.ConnectionPassword", "admin") \
-        .config("spark.driver.extraClassPath", os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])) \
-        .config("spark.executor.extraClassPath", os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])) \
-        .getOrCreate()
-
-    return spark
-
-
-def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
-    """
-    Create and return a Spark session configured for Delta Lake with S3 access.
-    """
-
-    try:
-        SparkSession.builder.getOrCreate().stop()
-        print("Stopped existing Spark session")
-    except:
-        print("No existing Spark session to stop")
-
-    # Define the base directory
-    # First try to find JAR files in various locations
-    possible_jar_locations = [
-        os.path.join(os.getcwd(), 'delta-jars'),  # Current directory
-        os.path.join(os.path.dirname(os.getcwd()),
-                     'delta-jars'),  # Parent directory
-        '/workspace/delta-jars',              # Inside Docker
-        '/workspace/delta-spark-handbook/delta-jars'  # Inside Docker
-    ]
-
-    # Try to find the jars directory
-    jars_home = None
-    for location in possible_jar_locations:
-        if os.path.exists(location):
-            print(f"Found JAR directory at: {location}")
-            jars_home = location
-            break
-
-    if not jars_home:
-        raise Exception(
-            "Could not find JAR directory in any of the expected locations")
-
-    # Required core JARs
-    jars_list = [
-        # Delta Lake
-        f"{jars_home}/delta-spark_2.12-3.3.0.jar",
-        f"{jars_home}/delta-storage-3.3.0.jar",
-        # AWS
-        f"{jars_home}/hadoop-aws-3.3.4.jar",
-        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
-        # Kyuubi
-        f"{jars_home}/kyuubi-spark-sql-engine_2.12-1.10.0.jar",
-        f"{jars_home}/kyuubi-common_2.12-1.10.0.jar"
-    ]
-
-    # Convert to comma-separated string
-    jars = ",".join(jars_list)
-
-    # Base configurations
+    # Create Spark session with comprehensive configuration
     builder = (SparkSession.builder
-               .appName(app_name)
-               .master("local[*]")
-               .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-               .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-               .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12")
-               .config("spark.jars", jars)
-               .config("spark.driver.extraClassPath", jars)
-               .config("spark.executor.extraClassPath", jars)
-               .config("spark.sql.warehouse.dir", "s3a://delta")
-               .config("spark.hadoop.hive.metastore.uris", "thrift://hive-metastore:9083")
-               # S3A Basic Configuration
-               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-               .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
-               .config("spark.hadoop.fs.s3a.path.style.access", "true")
-               .config("spark.hadoop.fs.s3a.impl.disable.cache", "true")
-               # Thread Pool Configuration
-               .config("spark.hadoop.fs.s3a.threads.core", "20")
-               .config("spark.hadoop.fs.s3a.threads.max", "40")
-               .config("spark.hadoop.fs.s3a.max.total.tasks", "100")
-               # Connection Configuration (in milliseconds)
-               .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
-               .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
-               .config("spark.hadoop.fs.s3a.socket.timeout", "60000")
-               .config("spark.hadoop.fs.s3a.connection.maximum", "100")
-               # Upload Configuration
-               .config("spark.hadoop.fs.s3a.fast.upload", "true")
-               .config("spark.hadoop.fs.s3a.fast.upload.buffer", "bytebuffer")
-               .config("spark.hadoop.fs.s3a.fast.upload.active.blocks", "4")
-               # 128MB in bytes
-               .config("spark.hadoop.fs.s3a.multipart.size", "134217728")
-               # 128MB in bytes
-               .config("spark.hadoop.fs.s3a.block.size", "134217728")
-               # Multipart Upload Configuration
-               # 128MB in bytes
-               .config("spark.hadoop.fs.s3a.multipart.threshold", "134217728")
-               .config("spark.hadoop.fs.s3a.multipart.purge", "false")
-               # 24 hours in milliseconds
-               .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400000")
-               # Retry Configuration
-               .config("spark.hadoop.fs.s3a.retry.limit", "20")
-               .config("spark.hadoop.fs.s3a.retry.interval", "1000")
-               .config("spark.hadoop.fs.s3a.attempts.maximum", "20")
-               # Client Configuration
-               .config("spark.hadoop.fs.s3a.connection.request.timeout", "60000")
-               .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60000")
-               .enableHiveSupport()
-               )
-
-    # Configure S3 access if credentials are provided
-    if aws_access_key and aws_secret_key:
-        builder = (builder
-                   .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
-                   .config("spark.hadoop.fs.s3a.access.key", aws_access_key)
-                   .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key)
-                   .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
-                   )
-    else:
-        # Use instance profile or environment variables for authentication
-        builder = builder.config("spark.hadoop.fs.s3a.aws.credentials.provider",
-                                 "com.amazonaws.auth.DefaultAWSCredentialsProviderChain")
-
-    # Additional S3 optimizations
-    builder = (builder
-               .config("spark.hadoop.fs.s3a.virtual.hosted.style", "false")
-               .config("spark.hadoop.fs.s3a.signing-algorithm", "S3SignerType")
-               .config("spark.hadoop.fs.s3a.experimental.input.fadvise", "sequential"))
+        .appName(app_name)
+        .master("local[*]")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config("spark.sql.catalogImplementation", "hive")
+        .config("spark.hadoop.javax.jdo.option.ConnectionURL", "jdbc:postgresql://localhost:5432/metastore_db")
+        .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver")
+        .config("spark.hadoop.javax.jdo.option.ConnectionUserName", "admin")
+        .config("spark.hadoop.javax.jdo.option.ConnectionPassword", "admin")
+        .config("spark.hadoop.hive.metastore.uris", "thrift://localhost:9083")
+        .config("spark.sql.warehouse.dir", "s3a://wba/warehouse")
+        .config("spark.driver.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
+        .config("spark.executor.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
+        .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12,org.slf4j:slf4j-reload4j,org.slf4j:log4j-slf4j-impl")
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000")
+        .config("spark.hadoop.fs.s3a.access.key", aws_access_key or "minioadmin")
+        .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key or "minioadmin")
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
+        .config("spark.hadoop.fs.s3a.fast.upload", "true")
+        .config("spark.hadoop.fs.s3a.multipart.size", "5242880")
+        .config("spark.hadoop.fs.s3a.block.size", "5242880")
+        .config("spark.hadoop.fs.s3a.multipart.threshold", "5242880")
+        .config("spark.hadoop.fs.s3a.threads.core", "10")
+        .config("spark.hadoop.fs.s3a.threads.max", "20")
+        .config("spark.hadoop.fs.s3a.max.total.tasks", "50")
+        .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.socket.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.connection.maximum", "50")
+        .config("spark.hadoop.fs.s3a.fast.upload.buffer", "bytebuffer")
+        .config("spark.hadoop.fs.s3a.fast.upload.active.blocks", "2")
+        .config("spark.hadoop.fs.s3a.multipart.purge", "false")
+        .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400000")
+        .config("spark.hadoop.fs.s3a.retry.limit", "10")
+        .config("spark.hadoop.fs.s3a.retry.interval", "1000")
+        .config("spark.hadoop.fs.s3a.attempts.maximum", "10")
+        .config("spark.hadoop.fs.s3a.connection.request.timeout", "60000")
+        .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60000")
+        .enableHiveSupport())
 
     return builder.getOrCreate()
 
