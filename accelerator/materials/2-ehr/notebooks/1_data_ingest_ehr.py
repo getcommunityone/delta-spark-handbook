@@ -5,7 +5,6 @@ from datetime import datetime
 from pyspark.sql import functions as F
 
 
-
 def create_spark_session():
     """Create a Spark session configured for Delta Lake with S3 access."""
     # Stop any existing Spark session
@@ -64,7 +63,8 @@ def create_spark_session():
     # Set environment variables
     os.environ['HADOOP_CONF_DIR'] = hadoop_conf_dir
     os.environ['SPARK_HOME'] = '/opt/spark'
-    os.environ['SPARK_CLASSPATH'] = os.pathsep.join([os.path.join(jars_home, jar) for jar in required_jars])
+    os.environ['SPARK_CLASSPATH'] = os.pathsep.join(
+        [os.path.join(jars_home, jar) for jar in required_jars])
     os.environ['HADOOP_CLASSPATH'] = os.environ['SPARK_CLASSPATH']
 
     # Create Spark session
@@ -94,6 +94,7 @@ def create_spark_session():
 
     return spark
 
+
 def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
     """
     Create and return a Spark session configured for Delta Lake with S3 access.
@@ -109,12 +110,12 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     # First try to find JAR files in various locations
     possible_jar_locations = [
         os.path.join(os.getcwd(), 'delta-jars'),  # Current directory
-        os.path.join(os.path.dirname(os.getcwd()), 'delta-jars'),  # Parent directory
+        os.path.join(os.path.dirname(os.getcwd()),
+                     'delta-jars'),  # Parent directory
         '/workspace/delta-jars',              # Inside Docker
         '/workspace/delta-spark-handbook/delta-jars'  # Inside Docker
-
     ]
-    
+
     # Try to find the jars directory
     jars_home = None
     for location in possible_jar_locations:
@@ -122,6 +123,10 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
             print(f"Found JAR directory at: {location}")
             jars_home = location
             break
+
+    if not jars_home:
+        raise Exception(
+            "Could not find JAR directory in any of the expected locations")
 
     # Required core JARs
     jars_list = [
@@ -139,19 +144,53 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     # Convert to comma-separated string
     jars = ",".join(jars_list)
 
+    # Base configurations
     builder = (SparkSession.builder
                .appName(app_name)
                .master("local[*]")
-               # .config("spark.jars.packages", packages_string)
                .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
                .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
                .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12")
-               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
                .config("spark.jars", jars)
                .config("spark.driver.extraClassPath", jars)
                .config("spark.executor.extraClassPath", jars)
                .config("spark.sql.warehouse.dir", "s3a://delta")
                .config("spark.hadoop.hive.metastore.uris", "thrift://hive-metastore:9083")
+               # S3A Basic Configuration
+               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+               .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
+               .config("spark.hadoop.fs.s3a.path.style.access", "true")
+               .config("spark.hadoop.fs.s3a.impl.disable.cache", "true")
+               # Thread Pool Configuration
+               .config("spark.hadoop.fs.s3a.threads.core", "20")
+               .config("spark.hadoop.fs.s3a.threads.max", "40")
+               .config("spark.hadoop.fs.s3a.max.total.tasks", "100")
+               # Connection Configuration (in milliseconds)
+               .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.socket.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.connection.maximum", "100")
+               # Upload Configuration
+               .config("spark.hadoop.fs.s3a.fast.upload", "true")
+               .config("spark.hadoop.fs.s3a.fast.upload.buffer", "bytebuffer")
+               .config("spark.hadoop.fs.s3a.fast.upload.active.blocks", "4")
+               # 128MB in bytes
+               .config("spark.hadoop.fs.s3a.multipart.size", "134217728")
+               # 128MB in bytes
+               .config("spark.hadoop.fs.s3a.block.size", "134217728")
+               # Multipart Upload Configuration
+               # 128MB in bytes
+               .config("spark.hadoop.fs.s3a.multipart.threshold", "134217728")
+               .config("spark.hadoop.fs.s3a.multipart.purge", "false")
+               # 24 hours in milliseconds
+               .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400000")
+               # Retry Configuration
+               .config("spark.hadoop.fs.s3a.retry.limit", "20")
+               .config("spark.hadoop.fs.s3a.retry.interval", "1000")
+               .config("spark.hadoop.fs.s3a.attempts.maximum", "20")
+               # Client Configuration
+               .config("spark.hadoop.fs.s3a.connection.request.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60000")
                .enableHiveSupport()
                )
 
@@ -161,12 +200,7 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
                    .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
                    .config("spark.hadoop.fs.s3a.access.key", aws_access_key)
                    .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key)
-                   .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
                    .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
-                   # IMPORTANT for MinIO
-                   .config("spark.hadoop.fs.s3a.path.style.access", "true")
-                   # Disable SSL for local MinIO
-                   .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
                    )
     else:
         # Use instance profile or environment variables for authentication
@@ -177,13 +211,10 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     builder = (builder
                .config("spark.hadoop.fs.s3a.virtual.hosted.style", "false")
                .config("spark.hadoop.fs.s3a.signing-algorithm", "S3SignerType")
-               .config("spark.hadoop.fs.s3a.connection.maximum", 100)
-               .config("spark.hadoop.fs.s3a.experimental.input.fadvise", "sequential")
-               .config("spark.hadoop.fs.s3a.fast.upload", "true")
-               .config("spark.hadoop.fs.s3a.block.size", 128 * 1024 * 1024))
+               .config("spark.hadoop.fs.s3a.experimental.input.fadvise", "sequential"))
 
     return builder.getOrCreate()
- 
+
 
 def infer_schema_from_file(spark, file_path, sample_size=1000):
     """
@@ -198,8 +229,8 @@ def infer_schema_from_file(spark, file_path, sample_size=1000):
 def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwrite", partition_by=None):
     """
     Load a CSV file into a Delta table using a database name.
- 
- 
+
+
     Args:
         spark: SparkSession object.
         file_path: Path to the CSV file (can be S3 URI).
@@ -208,7 +239,7 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         mode: Write mode (overwrite, append, etc.).
         partition_by: Column(s) to partition the data by.
     """
-    
+
     full_table_name = "unknown"
 
     try:
@@ -255,15 +286,12 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         writer = df.write.format("delta").mode(
             mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
 
-
         if partition_by:
             writer = writer.partitionBy(partition_by)
-
 
         writer.saveAsTable(full_table_name)
 
         # writer.saveAsTable(full_table_name)
-
 
         # Then create/refresh the table definition pointing to that location
         spark.sql(f"""
@@ -272,13 +300,12 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
             LOCATION '{table_path}'
         """)
 
-
         print(f"Successfully loaded {file_path} into table {full_table_name}")
         return True
     except Exception as e:
 
-        print(f"Error loading {file_path} into table {full_table_name}: {str(e)}")
-
+        print(
+            f"Error loading {file_path} into table {full_table_name}: {str(e)}")
 
         return False
 
@@ -319,7 +346,6 @@ def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_
 
     spark = create_spark_session(
         aws_access_key=aws_access_key, aws_secret_key=aws_secret_key)
-
 
     # Define partition strategies for specific tables
     partition_config = {
@@ -376,7 +402,7 @@ if __name__ == "__main__":
 
     # Update S3 path to use s3a protocol
     ehr_s3_path = "s3a://ehr/"
- 
+
     load_ehr_data_to_delta(ehr_s3_path, database_name,
                            aws_access_key, aws_secret_key)
 
