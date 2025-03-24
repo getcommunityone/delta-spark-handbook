@@ -1,5 +1,5 @@
 # Use apache/kyuubi base image with specific tag
-FROM apache/kyuubi:1.10.0-spark
+FROM apache/kyuubi:1.10.0
 
 # Set environment variables for Spark version
 ENV SPARK_VERSION=3.5.5

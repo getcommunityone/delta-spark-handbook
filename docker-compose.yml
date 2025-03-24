@@ -93,7 +93,7 @@ services:
       - SPARK_MASTER_WEBUI_PORT=8080
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_BIND_ADDRESS=0.0.0.0
-      SPARK_PUBLIC_DNS=0.0.0.0
+      - SPARK_PUBLIC_DNS=localhost
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
@@ -194,24 +194,6 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
-      - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT=7077
-      - SPARK_DRIVER_EXTRA_JAVA_OPTIONS=-Dspark.driver.rpc.address=kyuubi-server -Dspark.driver.hostname=kyuubi-server
-      - SPARK_EXECUTOR_EXTRA_JAVA_OPTIONS=-Dspark.executor.rpc.address=kyuubi-server -Dspark.executor.hostname=kyuubi-server
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-      - SPARK_UI_ENABLED=false
-      - SPARK_MASTER_UI_PORT=0
-      - SPARK_WORKER_UI_PORT=0
-      - SPARK_DRIVER_UI_PORT=0
-      - SPARK_EXECUTOR_UI_PORT=0
-      - SPARK_DRIVER_EXTRA_CLASSPATH=/opt/spark/jars/*
-      - SPARK_EXECUTOR_EXTRA_CLASSPATH=/opt/spark/jars/*
-      - SPARK_DRIVER_EXTRA_LIBRARY_PATH=/opt/spark/jars
-      - SPARK_EXECUTOR_EXTRA_LIBRARY_PATH=/opt/spark/jars
     volumes:
       - ./warehouse:/opt/kyuubi/warehouse:rw
     healthcheck:
