@@ -102,7 +102,8 @@ services:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf:rw,z
+      - ./spark-conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - ./spark-conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml:ro
       - ./delta-jars:/opt/bitnami/spark/jars
     networks:
       - spark-net
@@ -138,7 +139,8 @@ services:
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
     volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
+      - ./spark-conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - ./spark-conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml:ro
       - ./delta-jars:/opt/bitnami/spark/jars
     depends_on:
       - spark-master
@@ -194,6 +196,11 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
+      - KYUUBI_ENGINE_SHARE_LEVEL=CONNECTION
+      - KYUUBI_ENGINE_SPARK_MAIN_RESOURCE=/opt/spark/jars/*
+      - KYUUBI_ENGINE_SPARK_EXTRA_JARS=/opt/spark/jars/*
+      - KYUUBI_ENGINE_SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
+      - ./kyuubi-conf/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s

@@ -137,3 +137,4 @@ hive-config/hiveserver2.pid
 
 # Spark environment configuration
 spark-conf/spark-env.sh
+hive-config/hiveserver2.pid

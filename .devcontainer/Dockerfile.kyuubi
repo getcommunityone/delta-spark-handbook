@@ -19,7 +19,7 @@ RUN rm -rf ${SPARK_HOME} && \
 
  
 # Copy configuration directories into the container image
-COPY kyuubi-conf /opt/kyuubi/conf
+# COPY kyuubi-conf /opt/kyuubi/conf
 COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
 COPY delta-jars /opt/spark/jars
