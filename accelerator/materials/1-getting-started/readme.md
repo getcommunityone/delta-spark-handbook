@@ -275,6 +275,20 @@ kyuubi.engine.pool.size=2
 
 ## Troubleshooting
 
+
+### Checks
+
+1. Check if spark-master is running
+
+```bash
+docker exec -it spark-master bash
+spark-sql --master spark://spark-master:7077
+SHOW DATABASES;
+```
+
+2. Check if kyuubi is running
+```bash
+docker-compose logs kyuubi
 ### Common Issues
 
 1. DelayedCommitProtocol or serialVersionUID mismatches in the following repositories:
