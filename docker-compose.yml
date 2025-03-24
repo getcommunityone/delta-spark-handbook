@@ -194,8 +194,6 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
-    volumes:
-      - ./warehouse:/opt/kyuubi/warehouse:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
