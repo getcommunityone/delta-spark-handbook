@@ -22,7 +22,7 @@ RUN rm -rf ${SPARK_HOME} && \
 COPY kyuubi-conf /opt/kyuubi/conf
 COPY spark-conf /opt/spark/conf
 COPY warehouse /opt/kyuubi/warehouse
-# COPY delta-jars /opt/spark/jars
+COPY delta-jars /opt/spark/jars
 COPY delta-jars /opt/kyuubi/jars
 
 # Verify and check the copied files

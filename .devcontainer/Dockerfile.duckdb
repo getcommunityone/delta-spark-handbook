@@ -1,0 +1,38 @@
+FROM python:3.10-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install DuckDB CLI
+RUN wget https://github.com/duckdb/duckdb/releases/download/v0.9.2/duckdb_cli-linux-amd64.zip \
+    && unzip duckdb_cli-linux-amd64.zip \
+    && mv duckdb /usr/local/bin/ \
+    && chmod +x /usr/local/bin/duckdb \
+    && rm duckdb_cli-linux-amd64.zip
+
+# Install DuckDB and Delta Lake dependencies
+RUN pip install duckdb delta-spark fastapi uvicorn
+
+# Create necessary directories
+RUN mkdir -p /data /opt/duckdb/jars /etc/duckdb
+
+# Copy configuration and server script
+COPY duckdb-config/duckdb.conf /etc/duckdb/duckdb.conf
+COPY duckdb-config/server.py /app/server.py
+
+WORKDIR /app
+
+# Set environment variables
+ENV DUCKDB_DATABASE=/data/database.db
+ENV DUCKDB_CONFIG=/etc/duckdb/duckdb.conf
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Expose HTTP port
+EXPOSE 8081
+
+# Start DuckDB with HTTP interface
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8081"]

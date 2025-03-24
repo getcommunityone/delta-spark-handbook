@@ -22,6 +22,65 @@ services:
     networks:
       - spark-net
 
+  postgres:
+    hostname: postgres
+    container_name: postgres
+    image: postgres:10-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: metastore_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d metastore_db"]
+      interval: 1s
+      timeout: 10s
+      retries: 10
+    networks:
+      - spark-net
+
+  hive-metastore:
+    hostname: hive-metastore
+    container_name: hive-metastore
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile.hive
+    ports:
+      - 9083:9083
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
+    volumes:
+      - ./hive-config:/opt/hive/conf
+      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+    depends_on:
+      - postgres
+    networks:
+      - spark-net
+
+  hive-server:
+    hostname: hive-server
+    container_name: hive-server
+    image: apache/hive:4.0.0
+    ports:
+      - 10000:10000
+      - 10002:10002
+    environment:
+      SERVICE_NAME: hiveserver2
+      IS_RESUME: "true"
+      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
+    volumes:
+      - ./hive-config:/opt/hive/conf
+      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+    depends_on:
+      - postgres
+    networks:
+      - spark-net
+
   spark-init:
     image: bitnami/spark:3.5.5
     container_name: spark-init
@@ -45,7 +104,6 @@ services:
     image: bitnami/spark:3.5.5
     container_name: spark-master
     user: "1001"
-    command: bin/spark-class org.apache.spark.deploy.master.Master
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
@@ -54,10 +112,6 @@ services:
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
-      - SPARK_SQL_CATALOG_IMPLEMENTATION=in-memory
-      - SPARK_SQL_EXTENSIONS=io.delta.sql.DeltaSparkSessionExtension
-      - SPARK_LOCAL_IP=0.0.0.0
-      - SPARK_MASTER_HOST=0.0.0.0
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -73,16 +127,15 @@ services:
           max_attempts: 3
     healthcheck:
       test: ["CMD", "true"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+      interval: 5s
+      timeout: 5s
+      retries: 3
     depends_on:
       spark-init:
         condition: service_completed_successfully
       minio:
         condition: service_healthy
-
+        
   spark-worker:
     image: bitnami/spark:3.5.5
     container_name: spark-worker
@@ -98,8 +151,6 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
-      - SPARK_SQL_CATALOG_IMPLEMENTATION=in-memory
-      - SPARK_SQL_EXTENSIONS=io.delta.sql.DeltaSparkSessionExtension
     volumes:
       - ./spark-conf:/opt/bitnami/spark/conf
       - ./delta-jars:/opt/bitnami/spark/jars
@@ -107,6 +158,7 @@ services:
       - spark-master
     networks:
       - spark-net
+
 
   deltasharing:
     image: deltaio/delta-sharing-server:0.6.7 
@@ -156,52 +208,21 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
-      - SPARK_MASTER=spark://spark-master:7077
-      - SPARK_LOCAL_IP=0.0.0.0
-      - SPARK_DRIVER_HOST=0.0.0.0
-      - SPARK_DRIVER_PORT=0
-      - SPARK_BLOCK_MANAGER_PORT=0
-      - SPARK_SQL_EXTENSIONS=io.delta.sql.DeltaSparkSessionExtension
-      - SPARK_SQL_CATALOG_IMPLEMENTATION=in-memory
-      - AWS_ACCESS_KEY_ID=minioadmin
-      - AWS_SECRET_ACCESS_KEY=minioadmin
-      - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
-      - HADOOP_CLASSPATH=/opt/spark/jars/*
-      - HADOOP_OPTS="-Dfs.s3a.endpoint=http://minio:9000 -Dfs.s3a.access.key=minioadmin -Dfs.s3a.secret.key=minioadmin -Dfs.s3a.path.style.access=true"
-      - SPARK_DRIVER_HOST=kyuubi-server
-      - SPARK_DRIVER_BIND_ADDRESS=0.0.0.0
-      - SPARK_LOCAL_IP=0.0.0.0
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT=7077
-      - SPARK_DRIVER_EXTRA_JAVA_OPTIONS="-Dspark.driver.host=kyuubi-server -Dspark.driver.bindAddress=0.0.0.0"
-      - SPARK_EXECUTOR_EXTRA_JAVA_OPTIONS="-Dspark.executor.hostname=kyuubi-server"
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-      - SPARK_UI_ENABLED=false
-      - SPARK_MASTER_WEBUI_PORT=0
-      - SPARK_WORKER_WEBUI_PORT=0
-      - SPARK_DRIVER_WEBUI_PORT=0
-      - SPARK_EXECUTOR_WEBUI_PORT=0
     volumes:
       - ./warehouse:/opt/kyuubi/warehouse:rw
-      - ./delta-jars:/opt/spark/jars
-    command: /opt/kyuubi/bin/kyuubi run
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:10099/api/v1/ping"]
+      test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s  
     depends_on:
-      spark-master:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+      - spark-master
+      - minio
     networks:
       - spark-net
 
+ 
   dev:
     container_name: dev
     build: 
@@ -228,7 +249,7 @@ services:
       - SPARK_DRIVER_PORT=0
       - SPARK_BLOCK_MANAGER_PORT=0
       - SPARK_SQL_EXTENSIONS=io.delta.sql.DeltaSparkSessionExtension
-      - SPARK_SQL_CATALOG_IMPLEMENTATION=in-memory
+      - SPARK_SQL_CATALOG_IMPLEMENTATION=org.apache.spark.sql.delta.catalog.DeltaCatalog
       - HADOOP_HOME=/opt/hadoop
       - HADOOP_CONF_DIR=/opt/hadoop/conf
       - HADOOP_OPTS="-Dfs.s3a.endpoint=http://minio:9000 -Dfs.s3a.access.key=minioadmin -Dfs.s3a.secret.key=minioadmin -Dfs.s3a.path.style.access=true"
