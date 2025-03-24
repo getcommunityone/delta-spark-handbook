@@ -134,3 +134,6 @@ override.tf.json
 minio-data
 hiveserver2.pid
 hive-config/hiveserver2.pid
+
+# Spark environment configuration
+spark-conf/spark-env.sh
