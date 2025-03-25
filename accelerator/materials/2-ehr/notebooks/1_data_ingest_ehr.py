@@ -27,7 +27,11 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         f"{jars_home}/delta-storage-3.3.0.jar",
         f"{jars_home}/hadoop-aws-3.3.4.jar",
         f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
-        f"{jars_home}/postgresql-42.7.3.jar"
+        f"{jars_home}/postgresql-42.7.3.jar",
+        # Add Hadoop client JARs
+        f"{jars_home}/hadoop-client-3.4.1.jar",
+        f"{jars_home}/hadoop-client-runtime-3.4.1.jar",
+        f"{jars_home}/hadoop-client-api-3.4.1.jar"
     ]
 
     # Verify all JARs exist
@@ -74,52 +78,53 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     # Set environment variables
     os.environ["HADOOP_CONF_DIR"] = os.path.abspath(hadoop_conf_dir)
     os.environ["SPARK_HOME"] = "/opt/spark"
-    os.environ["SPARK_CLASSPATH"] = ":".join([os.path.abspath(jar) for jar in jar_locations])
+    os.environ["SPARK_CLASSPATH"] = ":".join(
+        [os.path.abspath(jar) for jar in jar_locations])
     os.environ["HADOOP_CLASSPATH"] = os.environ["SPARK_CLASSPATH"]
 
     # Create Spark session with comprehensive configuration
     builder = (SparkSession.builder
-        .appName(app_name)
-        .master("local[*]")
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-        .config("spark.sql.catalogImplementation", "hive")
-        .config("spark.hadoop.javax.jdo.option.ConnectionURL", "jdbc:postgresql://localhost:5432/metastore_db")
-        .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver")
-        .config("spark.hadoop.javax.jdo.option.ConnectionUserName", "admin")
-        .config("spark.hadoop.javax.jdo.option.ConnectionPassword", "admin")
-        .config("spark.hadoop.hive.metastore.uris", "thrift://localhost:9083")
-        .config("spark.sql.warehouse.dir", "s3a://wba/warehouse")
-        .config("spark.driver.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
-        .config("spark.executor.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
-        .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12,org.slf4j:slf4j-reload4j,org.slf4j:log4j-slf4j-impl")
-        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000")
-        .config("spark.hadoop.fs.s3a.access.key", aws_access_key or "minioadmin")
-        .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key or "minioadmin")
-        .config("spark.hadoop.fs.s3a.path.style.access", "true")
-        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
-        .config("spark.hadoop.fs.s3a.fast.upload", "true")
-        .config("spark.hadoop.fs.s3a.multipart.size", "5242880")
-        .config("spark.hadoop.fs.s3a.block.size", "5242880")
-        .config("spark.hadoop.fs.s3a.multipart.threshold", "5242880")
-        .config("spark.hadoop.fs.s3a.threads.core", "10")
-        .config("spark.hadoop.fs.s3a.threads.max", "20")
-        .config("spark.hadoop.fs.s3a.max.total.tasks", "50")
-        .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
-        .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
-        .config("spark.hadoop.fs.s3a.socket.timeout", "60000")
-        .config("spark.hadoop.fs.s3a.connection.maximum", "50")
-        .config("spark.hadoop.fs.s3a.fast.upload.buffer", "bytebuffer")
-        .config("spark.hadoop.fs.s3a.fast.upload.active.blocks", "2")
-        .config("spark.hadoop.fs.s3a.multipart.purge", "false")
-        .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400000")
-        .config("spark.hadoop.fs.s3a.retry.limit", "10")
-        .config("spark.hadoop.fs.s3a.retry.interval", "1000")
-        .config("spark.hadoop.fs.s3a.attempts.maximum", "10")
-        .config("spark.hadoop.fs.s3a.connection.request.timeout", "60000")
-        .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60000")
-        .enableHiveSupport())
+               .appName(app_name)
+               .master("local[*]")
+               .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+               .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+               .config("spark.sql.catalogImplementation", "hive")
+               .config("spark.hadoop.javax.jdo.option.ConnectionURL", "jdbc:postgresql://localhost:5432/metastore_db")
+               .config("spark.hadoop.javax.jdo.option.ConnectionDriverName", "org.postgresql.Driver")
+               .config("spark.hadoop.javax.jdo.option.ConnectionUserName", "admin")
+               .config("spark.hadoop.javax.jdo.option.ConnectionPassword", "admin")
+               .config("spark.hadoop.hive.metastore.uris", "thrift://localhost:9083")
+               .config("spark.sql.warehouse.dir", "s3a://wba/warehouse")
+               .config("spark.driver.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
+               .config("spark.executor.extraClassPath", ":".join([os.path.abspath(jar) for jar in jar_locations]))
+               .config("spark.jars.excludes", "org.slf4j:slf4j-log4j12,org.slf4j:slf4j-reload4j,org.slf4j:log4j-slf4j-impl")
+               .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+               .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000")
+               .config("spark.hadoop.fs.s3a.access.key", aws_access_key or "minioadmin")
+               .config("spark.hadoop.fs.s3a.secret.key", aws_secret_key or "minioadmin")
+               .config("spark.hadoop.fs.s3a.path.style.access", "true")
+               .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
+               .config("spark.hadoop.fs.s3a.fast.upload", "true")
+               .config("spark.hadoop.fs.s3a.multipart.size", "5242880")
+               .config("spark.hadoop.fs.s3a.block.size", "5242880")
+               .config("spark.hadoop.fs.s3a.multipart.threshold", "5242880")
+               .config("spark.hadoop.fs.s3a.threads.core", "10")
+               .config("spark.hadoop.fs.s3a.threads.max", "20")
+               .config("spark.hadoop.fs.s3a.max.total.tasks", "50")
+               .config("spark.hadoop.fs.s3a.connection.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.connection.establish.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.socket.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.connection.maximum", "50")
+               .config("spark.hadoop.fs.s3a.fast.upload.buffer", "bytebuffer")
+               .config("spark.hadoop.fs.s3a.fast.upload.active.blocks", "2")
+               .config("spark.hadoop.fs.s3a.multipart.purge", "false")
+               .config("spark.hadoop.fs.s3a.multipart.purge.age", "86400000")
+               .config("spark.hadoop.fs.s3a.retry.limit", "10")
+               .config("spark.hadoop.fs.s3a.retry.interval", "1000")
+               .config("spark.hadoop.fs.s3a.attempts.maximum", "10")
+               .config("spark.hadoop.fs.s3a.connection.request.timeout", "60000")
+               .config("spark.hadoop.fs.s3a.threads.keepalivetime", "60000")
+               .enableHiveSupport())
 
     return builder.getOrCreate()
 
