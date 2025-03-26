@@ -26,12 +26,11 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         f"{jars_home}/delta-spark_2.12-3.3.0.jar",
         f"{jars_home}/delta-storage-3.3.0.jar",
         f"{jars_home}/hadoop-aws-3.3.4.jar",
-        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
-        f"{jars_home}/postgresql-42.7.3.jar",
+        f"{jars_home}/bundle-2.24.12.jar",
         # Add Hadoop client JARs
-        f"{jars_home}/hadoop-client-3.4.1.jar",
-        f"{jars_home}/hadoop-client-runtime-3.4.1.jar",
-        f"{jars_home}/hadoop-client-api-3.4.1.jar"
+        f"{jars_home}/hadoop-client-3.3.4.jar",
+        f"{jars_home}/hadoop-client-runtime-3.3.4.jar",
+        f"{jars_home}/hadoop-client-api-3.3.4.jar"
     ]
 
     # Verify all JARs exist
