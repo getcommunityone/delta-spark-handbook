@@ -55,7 +55,8 @@ services:
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
-      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+      - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
+      - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
     depends_on:
       - postgres
     networks:
@@ -75,7 +76,8 @@ services:
     volumes:
       - ./hive-config:/opt/hive/conf
       - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
-      - ./delta-jars/aws-java-sdk-bundle-1.12.782.jar:/opt/hive/lib/aws-java-sdk-bundle-1.12.782.jar
+      - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
+      - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
     depends_on:
       - postgres
     networks:
