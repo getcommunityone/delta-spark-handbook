@@ -1,6 +1,6 @@
 -- Drop existing database if it exists
-DROP DATABASE IF EXISTS OMOP531 CASCADE;
-CREATE DATABASE IF NOT EXISTS OMOP531 LOCATION '/path/to/delta_silver_path';
+DROP DATABASE IF EXISTS omop531 CASCADE;
+CREATE DATABASE IF NOT EXISTS omop531 LOCATION 's3a://delta/omop531/omop531.db';
 USE OMOP531;
 
 -- Create tables

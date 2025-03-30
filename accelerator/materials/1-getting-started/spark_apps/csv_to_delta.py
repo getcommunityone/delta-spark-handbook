@@ -11,6 +11,12 @@ def main():
         .enableHiveSupport() \
         .getOrCreate()
 
+    hadoop_conf = spark.sparkContext._jsc.hadoopConfiguration()
+    
+    # Iterate and print all configuration entries
+    for entry in hadoop_conf.iterator():
+        print(f"{entry.getKey()} = {entry.getValue()}")
+        
     input_path = f"s3a://{source_bucket}/test-data/people-100.csv"
     delta_path = f"s3a://{source_bucket}/delta/wba/tables/"
 

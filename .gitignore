@@ -116,6 +116,7 @@ pycodestyle*.py
 # For IDE settings
 .vscode
 delta-jars/
+spark-home/jars/
 # For Terraform
 **/.terraform/*
 *.tfstate
@@ -132,4 +133,8 @@ override.tf.json
 .terraform.rc
 minio-data
 hiveserver2.pid
+hive-config/hiveserver2.pid
+
+# Spark environment configuration
+spark-conf/spark-env.sh
 hive-config/hiveserver2.pid

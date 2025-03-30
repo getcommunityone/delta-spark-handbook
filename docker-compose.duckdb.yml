@@ -22,69 +22,44 @@ services:
     networks:
       - spark-net
 
-  postgres:
-    hostname: postgres
-    container_name: postgres
-    image: postgres:10-alpine
+  createbucket:
+    container_name: createbucket
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin); do echo 'Waiting for MinIO...'; sleep 1; done;
+      /usr/bin/mc mb myminio/wba;
+      /usr/bin/mc policy set public myminio/wba;
+      echo 'Bucket created successfully `myminio/wba`.';
+      echo 'Access permission for `myminio/wba` is set to `public`';
+      "
+    networks:
+      - spark-net
+
+  deltasharing:
+    image: deltaio/delta-sharing-server:0.6.7 
+    platform: linux/amd64
+    container_name: deltasharing
     ports:
-      - 5432:5432
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: metastore_db
+      - "7777:80"
+    volumes:
+      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
+      - ./delta-jars:/opt/delta-sharing/jars
+    command: ["--config", "/config/delta-sharing-server-config.yaml"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d metastore_db"]
-      interval: 1s
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
       timeout: 10s
-      retries: 10
-    networks:
-      - spark-net
-
-  hive-metastore:
-    hostname: hive-metastore
-    container_name: hive-metastore
-    build:
-      context: .
-      dockerfile: .devcontainer/Dockerfile.hive
-    ports:
-      - 9083:9083
-    environment:
-      SERVICE_NAME: metastore
-      DB_DRIVER: postgres
-      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
-    volumes:
-      - ./hive-config:/opt/hive/conf
-      - ./delta-jars/hadoop-aws-3.3.4.jar:/opt/hive/lib/hadoop-aws-3.3.4.jar
-      - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
-      - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
+      retries: 3
     depends_on:
-      - postgres
-    networks:
-      - spark-net
-
-  hive-server:
-    hostname: hive-server
-    container_name: hive-server
-    image: apache/hive:4.0.0
-    ports:
-      - 10000:10000
-      - 10002:10002
-    environment:
-      SERVICE_NAME: hiveserver2
-      IS_RESUME: "true"
-      HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
-    volumes:
-      - ./hive-config:/opt/hive/conf
-      - ./delta-jars/hadoop-aws-3.3.4.jar:/opt/hive/lib/hadoop-aws-3.3.4.jar
-      - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
-      - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
-    depends_on:
-      - postgres
+      - minio
     networks:
       - spark-net
 
   spark-init:
-    image: bitnami/spark:3.5.4
+    image: bitnami/spark:3.5.5
     container_name: spark-init
     user: "0"  # Run as root to avoid permission issues
     volumes:
@@ -137,7 +112,7 @@ services:
         condition: service_completed_successfully
       minio:
         condition: service_healthy
-        
+
   spark-worker:
     image: bitnami/spark:3.5.5
     container_name: spark-worker
@@ -147,84 +122,73 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=4G
       - SPARK_WORKER_CORES=2
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
+    ports:
+      - "8082:8081"  # Changed from 8081 to avoid conflict with DuckDB server
     volumes:
-      - ./spark-conf:/opt/bitnami/spark/conf
+      - ./spark-conf:/opt/bitnami/spark/conf:rw,z
       - ./delta-jars:/opt/bitnami/spark/jars
-    depends_on:
-      - spark-master
     networks:
       - spark-net
-
-
-  deltasharing:
-    image: deltaio/delta-sharing-server:0.6.7 
-    platform: linux/amd64
-    container_name: deltasharing
-    ports:
-      - "7777:80"
-    volumes:
-      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
-      - ./delta-jars:/opt/delta-sharing/jars
-    command: ["--config", "/config/delta-sharing-server-config.yaml"]
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "true"]
+      interval: 5s
+      timeout: 5s
       retries: 3
     depends_on:
-      - minio
-    networks:
-      - spark-net
+      spark-init:
+        condition: service_completed_successfully
+      spark-master:
+        condition: service_started
+      minio:
+        condition: service_healthy
 
-  createbucket:
-    container_name: createbucket
-    image: minio/mc:latest
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      until (/usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin); do echo 'Waiting for MinIO...'; sleep 1; done;
-      /usr/bin/mc mb myminio/wba;
-      /usr/bin/mc policy set public myminio/wba;
-      echo 'Bucket created successfully `myminio/wba`.';
-      echo 'Access permission for `myminio/wba` is set to `public`';
-      "
-    networks:
-      - spark-net
-
-  kyuubi:
-    container_name: kyuubi-server
-    build: 
+  duckdb-server:
+    build:
       context: .
-      dockerfile: .devcontainer/Dockerfile.kyuubi
-    ports:
-      - "10009:10009"
-      - "10099:10099"
+      dockerfile: .devcontainer/Dockerfile.duckdb
+    container_name: duckdb-server
+    volumes:
+      - ./duckdb-data:/data
+      - ./delta-jars:/jars
+      - ./duckdb-config:/app
     environment:
-      - KYUUBI_HOME=/opt/kyuubi
-      - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
-      - SPARK_HOME=/opt/spark
+      - DUCKDB_DATABASE=/data/database.db
+      - DUCKDB_USE_DIRECT_IO=true
+    ports:
+      - "8081:8081"
+    command: >
+      bash -c "
+        mkdir -p /data && chmod 777 /data &&
+        duckdb /data/database.db -c '
+        INSTALL httpfs;
+        LOAD httpfs;
+        SET s3_region=\"us-east-1\";
+        SET s3_endpoint=\"http://minio:9000\";
+        SET s3_access_key_id=\"minioadmin\";
+        SET s3_secret_access_key=\"minioadmin\";
+        ' &&
+        python -m uvicorn server:app --host 0.0.0.0 --port 8081"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s  
-    volumes:
-      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
     depends_on:
-      - spark-master
       - minio
+      - spark-master
     networks:
       - spark-net
 
- 
   dev:
     container_name: dev
     build: 
@@ -239,10 +203,11 @@ services:
     command: sleep infinity
     environment:
       - PYTHONPATH=/workspace
-      - SPARK_HOME=/opt/spark
       - DEBIAN_FRONTEND=noninteractive
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
+      - DUCKDB_DATABASE=/data/warehouse.db
+      - SPARK_HOME=/opt/spark
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
       - HADOOP_CLASSPATH=/opt/spark/jars/*
       - SPARK_LOCAL_IP=0.0.0.0
@@ -251,8 +216,8 @@ services:
       - SPARK_DRIVER_PORT=0
       - SPARK_BLOCK_MANAGER_PORT=0
     depends_on:
-      - kyuubi
       - spark-master
+      - duckdb-server
       - minio
     networks:
       - spark-net
@@ -264,4 +229,3 @@ networks:
 volumes:
   minio-data:
   delta-spark-cache:
-  kyuubi-spark-jars:
