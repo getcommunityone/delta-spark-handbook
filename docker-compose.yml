@@ -54,7 +54,7 @@ services:
       HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
     volumes:
       - ./hive-config:/opt/hive/conf
-      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/hadoop-aws-3.3.4.jar:/opt/hive/lib/hadoop-aws-3.3.4.jar
       - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
       - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
     depends_on:
@@ -75,7 +75,7 @@ services:
       HIVE_CUSTOM_CONF_DIR: /opt/hive/conf
     volumes:
       - ./hive-config:/opt/hive/conf
-      - ./delta-jars/hadoop-aws-3.4.1.jar:/opt/hive/lib/hadoop-aws-3.4.1.jar
+      - ./delta-jars/hadoop-aws-3.3.4.jar:/opt/hive/lib/hadoop-aws-3.3.4.jar
       - ./delta-jars/bundle-2.24.12.jar:/opt/hive/lib/bundle-2.24.12.jar
       - ./delta-jars/url-connection-client-2.24.12.jar:/opt/hive/lib/url-connection-client-2.24.12.jar
     depends_on:
@@ -83,19 +83,33 @@ services:
     networks:
       - spark-net
 
+  spark-init:
+    image: bitnami/spark:3.5.4
+    container_name: spark-init
+    user: "0"  # Run as root to avoid permission issues
+    volumes:
+      - ./spark-conf:/opt/bitnami/spark/conf:rw
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "Fixing Spark configuration permissions..."
+        chown -R 1001:1001 /opt/bitnami/spark/conf
+        chmod -R u+rwX,g+rX,o+rX /opt/bitnami/spark/conf
+        echo "Permissions fixed."
+    depends_on:
+      minio:
+        condition: service_healthy  # Ensure it runs after minio is healthy
+    networks:
+      - spark-net
 
   spark-master:
     image: bitnami/spark:3.5.5
     container_name: spark-master
     user: "1001"
-    command: bin/spark-class org.apache.spark.deploy.master.Master
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
       - SPARK_MASTER_WEBUI_PORT=8080
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_BIND_ADDRESS=0.0.0.0
-      - SPARK_PUBLIC_DNS=localhost
       - AWS_ACCESS_KEY_ID=minioadmin
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
@@ -104,8 +118,7 @@ services:
       - "8080:8080"
       - "7077:7077"
     volumes:
-      - ./spark-conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - ./spark-conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml:ro
+      - ./spark-conf:/opt/bitnami/spark/conf:rw,z
       - ./delta-jars:/opt/bitnami/spark/jars
     networks:
       - spark-net
@@ -115,12 +128,13 @@ services:
           delay: 5s
           max_attempts: 3
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      test: ["CMD", "true"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
     depends_on:
+      spark-init:
+        condition: service_completed_successfully
       minio:
         condition: service_healthy
         
@@ -128,7 +142,6 @@ services:
     image: bitnami/spark:3.5.5
     container_name: spark-worker
     user: "1001"
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
@@ -141,8 +154,7 @@ services:
       - SPARK_EXTRA_CLASSPATH=/opt/bitnami/spark/jars/*
       - HADOOP_CLASSPATH=/opt/bitnami/spark/jars/*
     volumes:
-      - ./spark-conf/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - ./spark-conf/core-site.xml:/opt/bitnami/spark/conf/core-site.xml:ro
+      - ./spark-conf:/opt/bitnami/spark/conf
       - ./delta-jars:/opt/bitnami/spark/jars
     depends_on:
       - spark-master
@@ -198,17 +210,14 @@ services:
       - KYUUBI_HOME=/opt/kyuubi
       - KYUUBI_WORK_DIR_ROOT=/opt/kyuubi/work
       - SPARK_HOME=/opt/spark
-      - KYUUBI_ENGINE_SHARE_LEVEL=CONNECTION
-      - KYUUBI_ENGINE_SPARK_MAIN_RESOURCE=/opt/spark/jars/*
-      - KYUUBI_ENGINE_SPARK_EXTRA_JARS=/opt/spark/jars/*
-      - KYUUBI_ENGINE_SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
-      - ./kyuubi-conf/kyuubi-defaults.conf:/opt/kyuubi/conf/kyuubi-defaults.conf:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://kyuubi-server:10099/api/v1/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s  
+    volumes:
+      - ./delta-sharing-conf/delta-sharing-server-config.yaml:/config/delta-sharing-server-config.yaml
     depends_on:
       - spark-master
       - minio
@@ -236,17 +245,11 @@ services:
       - AWS_SECRET_ACCESS_KEY=minioadmin
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
       - HADOOP_CLASSPATH=/opt/spark/jars/*
+      - SPARK_LOCAL_IP=0.0.0.0
       - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_DRIVER_HOST=0.0.0.0
       - SPARK_DRIVER_PORT=0
       - SPARK_BLOCK_MANAGER_PORT=0
-      - SPARK_SQL_EXTENSIONS=io.delta.sql.DeltaSparkSessionExtension
-      - SPARK_SQL_CATALOG_IMPLEMENTATION=org.apache.spark.sql.delta.catalog.DeltaCatalog
-      - HADOOP_HOME=/opt/hadoop
-      - HADOOP_CONF_DIR=/opt/hadoop/conf
-      - HADOOP_OPTS="-Dfs.s3a.endpoint=http://minio:9000 -Dfs.s3a.access.key=minioadmin -Dfs.s3a.secret.key=minioadmin -Dfs.s3a.path.style.access=true"
-      - SPARK_CLASSPATH=/opt/spark/jars/*
-      - SPARK_DRIVER_EXTRA_CLASSPATH=/opt/spark/jars/*
-      - SPARK_EXECUTOR_EXTRA_CLASSPATH=/opt/spark/jars/*
     depends_on:
       - kyuubi
       - spark-master
