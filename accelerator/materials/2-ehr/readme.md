@@ -1,7 +1,9 @@
 # OMOP 5.31 with Delta Spark
+
 In this solution accelerator, we will build a Common Data Model for observational research based on OMOP 5.31 CDM, on databricks lakehouse platform.
 
-Reference [Databricks Project](https://databricks.com/solutions/lakehouse/healthcare-and-life-sciences)
+Reference [Databricks Project](https://www.databricks.com/solutions/accelerators/real-world-evidence)
+Reference [Github](https://github.com/databricks-industry-solutions/omop-cdm)
 
 ### Solution Overview
 

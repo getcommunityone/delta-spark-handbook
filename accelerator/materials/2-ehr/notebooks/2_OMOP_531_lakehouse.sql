@@ -1,7 +1,9 @@
 -- Drop existing database if it exists
 DROP DATABASE IF EXISTS OMOP531 CASCADE;
-CREATE DATABASE IF NOT EXISTS OMOP531 LOCATION '/path/to/delta_silver_path';
+CREATE DATABASE IF NOT EXISTS OMOP531;
 USE OMOP531;
+
+DESCRIBE DATABASE OMOP531;
 
 -- Create tables
 CREATE OR REPLACE TABLE CONCEPT (
@@ -217,3 +219,5 @@ SELECT
   metadata_date,
   metadata_datetime
 FROM METADATA;
+
+

@@ -3,7 +3,12 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 import os
 from datetime import datetime
 from pyspark.sql import functions as F
+from urllib.parse import urlparse
 
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
+import time
 
 def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_secret_key=None):
     """
@@ -26,8 +31,7 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         f"{jars_home}/delta-spark_2.12-3.3.0.jar",
         f"{jars_home}/delta-storage-3.3.0.jar",
         f"{jars_home}/hadoop-aws-3.3.4.jar",
-        f"{jars_home}/aws-java-sdk-bundle-1.12.782.jar",
-        f"{jars_home}/postgresql-42.7.3.jar",
+        f"{jars_home}/bundle-2.24.12.jar",
         # Add Hadoop client JARs
         f"{jars_home}/hadoop-client-3.4.1.jar",
         f"{jars_home}/hadoop-client-runtime-3.4.1.jar",
@@ -86,6 +90,7 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
     builder = (SparkSession.builder
                .appName(app_name)
                .master("local[*]")
+               #.master("spark://localhost:7077") 
                .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
                .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
                .config("spark.sql.catalogImplementation", "hive")
@@ -157,11 +162,7 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
 
     try:
 
-        # Ensure the database exists
-        spark.sql(
-            f"CREATE DATABASE IF NOT EXISTS {database_name} LOCATION 's3a://delta/{database_name}/{database_name}.db'")
 
-        table_path = f"s3a://delta/{database_name}/{table_name}"
 
         # Infer schema from file
         schema = infer_schema_from_file(spark, file_path)
@@ -202,16 +203,24 @@ def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwr
         if partition_by:
             writer = writer.partitionBy(partition_by)
 
-        writer.saveAsTable(full_table_name)
+        # Get warehouse dir from Spark config
+        warehouse_dir = spark.conf.get("spark.sql.warehouse.dir").rstrip("/")
+
+        # Format: {warehouse_dir}/{database}.db/{table}
+        table_path = f"{warehouse_dir}/{database_name}.db/{table_name}"
+
+        print(f"📁 Calculated table path: {table_path}")
+
 
         # writer.saveAsTable(full_table_name)
+        writer.save(table_path)
 
         # Then create/refresh the table definition pointing to that location
         spark.sql(f"""
-            CREATE TABLE IF NOT EXISTS {database_name}.{table_name}
+         CREATE TABLE IF NOT EXISTS {database_name}.{table_name}
             USING DELTA
-            LOCATION '{table_path}'
-        """)
+             LOCATION '{table_path}'
+         """)
 
         print(f"Successfully loaded {file_path} into table {full_table_name}")
         return True
@@ -273,15 +282,62 @@ def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_
         "allergies.csv": None,
         "careplans.csv": None,
         "organizations.csv": None,
-        "providers.csv": None
+        "providers.csv": None,
+        "devices.csv": None,
+        "supplies.csv": None,
+        "payer_transitions.csv": None,
+        "payers.csv": None
     }
+    
+    # Download Files
+    vocab_s3_path = "s3://hls-eng-data-public/data/synthea/"
 
+    parsed = urlparse(vocab_s3_path)
+    bucket = parsed.netloc
+    prefix = parsed.path.lstrip('/').rstrip('/')
+
+    s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    response = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+    available_keys = [obj['Key'] for obj in response.get('Contents', [])]
+
+    start_time = time.time()
+    for key in available_keys:
+        print("⏳ Downloading from S3...")
+        response = s3.get_object(Bucket=bucket, Key=key)
+        csv_content = response['Body'].read()
+        download_time = time.time()
+        print(f"✅ Download complete in {download_time - start_time:.2f}s")
+
+        # Save raw .csv.gz file to MinIO
+        raw_key = key
+        print(f"📤 Saving raw .csv to MinIO: {raw_key}...")
+        s3_minio = boto3.client(
+            "s3",
+            endpoint_url="http://localhost:9000",  # adjust to your MinIO endpoint
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin"
+        )
+        s3_minio.put_object(
+            Bucket=f"{database_name}",
+            Key=raw_key,
+            Body=csv_content
+        )
+        print("✅ Raw .csv saved to MinIO.")
+        
+        
     # List all CSV files in the S3 directory
     s3_files = list_s3_files(spark, ehr_s3_path, ".csv")
 
+    
     # Process each file
     results = {}
 
+    spark.sql(f"DROP DATABASE IF EXISTS {database_name} CASCADE")
+    
+    # Ensure the database exists
+    spark.sql(
+        f"CREATE DATABASE IF NOT EXISTS {database_name} ")
+    
     for file_path in s3_files:
         file_name = file_path.split('/')[-1]
         if file_name.endswith(".csv"):
@@ -289,6 +345,7 @@ def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_
 
             # Get partition columns if defined
             partition_by = partition_config.get(file_name)
+
 
             # Load file to Delta table in the database
             success = load_file_to_delta(
