@@ -1,217 +1,702 @@
 -- Drop existing database if it exists
-DROP DATABASE IF EXISTS OMOP531 CASCADE;
-CREATE DATABASE IF NOT EXISTS OMOP531;
-DROP DATABASE IF EXISTS omop531 CASCADE;
-CREATE DATABASE IF NOT EXISTS omop531 LOCATION 's3a://delta/omop531/omop531.db';
+-- DROP DATABASE IF EXISTS OMOP531 CASCADE;
+
+CREATE DATABASE IF NOT EXISTS omop531 LOCATION 's3a://wba/warehouse/omop531.db';
 USE OMOP531;
 
 DESCRIBE DATABASE OMOP531;
 
--- Create tables
-CREATE OR REPLACE TABLE CONCEPT (
-  CONCEPT_ID LONG,
-  CONCEPT_NAME STRING,
-  DOMAIN_ID STRING,
-  VOCABULARY_ID STRING,
-  CONCEPT_CLASS_ID STRING,
-  STANDARD_CONCEPT STRING,
-  CONCEPT_CODE STRING,
-  VALID_START_DATE DATE,
-  VALID_END_DATE DATE,
-  INVALID_REASON STRING
-) USING DELTA;
+/*********************************************************************************
+# Copyright 2017-11 Observational Health Data Sciences and Informatics
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License")
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+********************************************************************************/
 
-CREATE OR REPLACE TABLE VOCABULARY (
-  VOCABULARY_ID STRING,
-  VOCABULARY_NAME STRING,
-  VOCABULARY_REFERENCE STRING,
-  VOCABULARY_VERSION STRING,
-  VOCABULARY_CONCEPT_ID LONG
-) USING DELTA;
+/************************
 
-CREATE OR REPLACE TABLE DOMAIN (
-  DOMAIN_ID STRING,
-  DOMAIN_NAME STRING,
-  DOMAIN_CONCEPT_ID LONG
-) USING DELTA;
+ ####### #     # ####### ######      #####  ######  #     #           #######      #####
+ #     # ##   ## #     # #     #    #     # #     # ##   ##    #    # #           #     #
+ #     # # # # # #     # #     #    #       #     # # # # #    #    # #                 #
+ #     # #  #  # #     # ######     #       #     # #  #  #    #    # ######       #####
+ #     # #     # #     # #          #       #     # #     #    #    #       # ###       #
+ #     # #     # #     # #          #     # #     # #     #     #  #  #     # ### #     #
+ ####### #     # ####### #           #####  ######  #     #      ##    #####  ###  #####
 
-CREATE OR REPLACE TABLE CONCEPT_CLASS (
-  CONCEPT_CLASS_ID STRING,
-  CONCEPT_CLASS_NAME STRING,
-  CONCEPT_CLASS_CONCEPT_ID LONG
-) USING DELTA;
 
-CREATE OR REPLACE TABLE CONCEPT_RELATIONSHIP (
-  CONCEPT_ID_1 LONG,
-  CONCEPT_ID_2 LONG,
-  RELATIONSHIP_ID STRING,
-  VALID_START_DATE DATE,
-  VALID_END_DATE DATE,
-  INVALID_REASON STRING
-) USING DELTA;
+Databricks SQL script to create OMOP common data model version 5.3
 
-CREATE OR REPLACE TABLE RELATIONSHIP (
-  RELATIONSHIP_ID STRING,
-  RELATIONSHIP_NAME STRING,
-  IS_HIERARCHICAL STRING,
-  DEFINES_ANCESTRY STRING,
-  REVERSE_RELATIONSHIP_ID STRING,
-  RELATIONSHIP_CONCEPT_ID LONG
-) USING DELTA;
+Converted from PostgreSQL script
+*************************/
 
-CREATE OR REPLACE TABLE CONCEPT_SYNONYM (
-  CONCEPT_ID LONG,
-  CONCEPT_SYNONYM_NAME STRING,
-  LANGUAGE_CONCEPT_ID LONG
-) USING DELTA;
 
-CREATE OR REPLACE TABLE CONCEPT_ANCESTOR (
-  ANCESTOR_CONCEPT_ID LONG,
-  DESCENDANT_CONCEPT_ID LONG,
-  MIN_LEVELS_OF_SEPARATION LONG,
-  MAX_LEVELS_OF_SEPARATION LONG
-) USING DELTA;
+/************************
 
-CREATE OR REPLACE TABLE SOURCE_TO_CONCEPT_MAP (
-  SOURCE_CODE STRING,
-  SOURCE_CONCEPT_ID LONG,
-  SOURCE_VOCABULARY_ID STRING,
-  SOURCE_CODE_DESCRIPTION STRING,
-  TARGET_CONCEPT_ID LONG,
-  TARGET_VOCABULARY_ID STRING,
-  VALID_START_DATE DATE,
-  VALID_END_DATE DATE,
-  INVALID_REASON STRING
-) USING DELTA;
+Standardized vocabulary
 
-CREATE OR REPLACE TABLE DRUG_STRENGTH (
-  DRUG_CONCEPT_ID LONG,
-  INGREDIENT_CONCEPT_ID LONG,
-  AMOUNT_VALUE DOUBLE,
-  AMOUNT_UNIT_CONCEPT_ID LONG,
-  NUMERATOR_VALUE DOUBLE,
-  NUMERATOR_UNIT_CONCEPT_ID LONG,
-  DENOMINATOR_VALUE DOUBLE,
-  DENOMINATOR_UNIT_CONCEPT_ID LONG,
-  BOX_SIZE LONG,
-  VALID_START_DATE DATE,
-  VALID_END_DATE DATE,
-  INVALID_REASON STRING
-) USING DELTA;
+************************/
 
-CREATE OR REPLACE TABLE ATTRIBUTE_DEFINITION (
-  ATTRIBUTE_DEFINITION_ID LONG,
-  ATTRIBUTE_NAME STRING,
-  ATTRIBUTE_DESCRIPTION STRING,
-  ATTRIBUTE_TYPE_CONCEPT_ID LONG,
-  ATTRIBUTE_SYNTAX STRING
-) USING DELTA;
 
-CREATE OR REPLACE TABLE CDM_SOURCE (
-  CDM_SOURCE_NAME STRING,
-  CDM_SOURCE_ABBREVIATION STRING,
-  CDM_HOLDER STRING,
-  SOURCE_DESCRIPTION STRING,
-  SOURCE_DOCUMENTATION_REFERENCE STRING,
-  CDM_ETL_REFERENCE STRING,
-  SOURCE_RELEASE_DATE DATE,
-  CDM_RELEASE_DATE DATE,
-  CDM_VERSION STRING,
-  VOCABULARY_VERSION STRING
-) USING DELTA;
+CREATE TABLE IF NOT EXISTS concept (
+  concept_id              INT           NOT NULL,
+  concept_name            STRING        NOT NULL,
+  domain_id               STRING        NOT NULL,
+  vocabulary_id           STRING        NOT NULL,
+  concept_class_id        STRING        NOT NULL,
+  standard_concept        STRING,
+  concept_code            STRING        NOT NULL,
+  valid_start_date        DATE          NOT NULL,
+  valid_end_date          DATE          NOT NULL,
+  invalid_reason          STRING
+)
+USING DELTA;
 
-CREATE OR REPLACE TABLE METADATA (
-  METADATA_CONCEPT_ID LONG,
-  METADATA_TYPE_CONCEPT_ID LONG,
-  NAME STRING,
-  VALUE_AS_STRING STRING,
-  VALUE_AS_CONCEPT_ID LONG,
-  METADATA_DATE DATE,
-  METADATA_DATETIME TIMESTAMP
-) USING DELTA;
 
-CREATE OR REPLACE TABLE PERSON (
-  PERSON_ID LONG,
-  GENDER_CONCEPT_ID LONG,
-  YEAR_OF_BIRTH LONG,
-  MONTH_OF_BIRTH LONG,
-  DAY_OF_BIRTH LONG,
-  BIRTH_DATETIME TIMESTAMP,
-  RACE_CONCEPT_ID LONG,
-  ETHNICITY_CONCEPT_ID LONG,
-  LOCATION_ID LONG,
-  PROVIDER_ID LONG,
-  CARE_SITE_ID LONG,
-  PERSON_SOURCE_VALUE STRING,
-  GENDER_SOURCE_VALUE STRING,
-  GENDER_SOURCE_CONCEPT_ID LONG,
-  RACE_SOURCE_VALUE STRING,
-  RACE_SOURCE_CONCEPT_ID LONG,
-  ETHNICITY_SOURCE_VALUE STRING,
-  ETHNICITY_SOURCE_CONCEPT_ID LONG
-) USING DELTA;
+CREATE TABLE IF NOT EXISTS vocabulary (
+  vocabulary_id           STRING        NOT NULL,
+  vocabulary_name         STRING        NOT NULL,
+  vocabulary_reference    STRING        NOT NULL,
+  vocabulary_version      STRING        NOT NULL,
+  vocabulary_concept_id   INT           NOT NULL
+)
+USING DELTA;
 
-CREATE OR REPLACE TABLE OBSERVATION_PERIOD (
-  OBSERVATION_PERIOD_ID LONG,
-  PERSON_ID LONG,
-  OBSERVATION_PERIOD_START_DATE DATE,
-  OBSERVATION_PERIOD_END_DATE DATE,
-  PERIOD_TYPE_CONCEPT_ID LONG
-) USING DELTA;
 
-CREATE OR REPLACE TABLE VISIT_OCCURRENCE (
-  VISIT_OCCURRENCE_ID LONG,
-  PERSON_ID LONG,
-  VISIT_CONCEPT_ID LONG,
-  VISIT_START_DATE DATE,
-  VISIT_START_DATETIME TIMESTAMP,
-  VISIT_END_DATE DATE,
-  VISIT_END_DATETIME TIMESTAMP,
-  VISIT_TYPE_CONCEPT_ID LONG,
-  PROVIDER_ID LONG,
-  CARE_SITE_ID LONG,
-  VISIT_SOURCE_VALUE STRING,
-  VISIT_SOURCE_CONCEPT_ID LONG,
-  ADMITTING_SOURCE_CONCEPT_ID LONG,
-  ADMITTING_SOURCE_VALUE STRING,
-  DISCHARGE_TO_CONCEPT_ID LONG,
-  DISCHARGE_TO_SOURCE_VALUE STRING,
-  PRECEDING_VISIT_OCCURRENCE_ID LONG
-) USING DELTA;
+CREATE TABLE IF NOT EXISTS domain (
+  domain_id               STRING        NOT NULL,
+  domain_name             STRING        NOT NULL,
+  domain_concept_id       INT           NOT NULL
+)
+USING DELTA;
 
-CREATE OR REPLACE TABLE CONDITION_OCCURRENCE (
-  CONDITION_OCCURRENCE_ID LONG,
-  PERSON_ID LONG,
-  CONDITION_CONCEPT_ID LONG,
-  CONDITION_START_DATE DATE,
-  CONDITION_START_DATETIME TIMESTAMP,
-  CONDITION_END_DATE DATE,
-  CONDITION_END_DATETIME TIMESTAMP,
-  CONDITION_TYPE_CONCEPT_ID LONG,
-  STOP_REASON STRING,
-  PROVIDER_ID LONG,
-  VISIT_OCCURRENCE_ID LONG,
-  VISIT_DETAIL_ID LONG,
-  CONDITION_SOURCE_VALUE STRING,
-  CONDITION_SOURCE_CONCEPT_ID LONG,
-  CONDITION_STATUS_SOURCE_VALUE STRING,
-  CONDITION_STATUS_CONCEPT_ID LONG
-) USING DELTA;
 
--- Insert metadata
-INSERT INTO METADATA
+CREATE TABLE IF NOT EXISTS concept_class (
+  concept_class_id          STRING      NOT NULL,
+  concept_class_name        STRING      NOT NULL,
+  concept_class_concept_id  INT         NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS concept_relationship (
+  concept_id_1           INT           NOT NULL,
+  concept_id_2           INT           NOT NULL,
+  relationship_id        STRING        NOT NULL,
+  valid_start_date       DATE          NOT NULL,
+  valid_end_date         DATE          NOT NULL,
+  invalid_reason         STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS relationship (
+  relationship_id          STRING       NOT NULL,
+  relationship_name        STRING       NOT NULL,
+  is_hierarchical          STRING       NOT NULL,
+  defines_ancestry         STRING       NOT NULL,
+  reverse_relationship_id  STRING       NOT NULL,
+  relationship_concept_id  INT          NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS concept_synonym (
+  concept_id              INT           NOT NULL,
+  concept_synonym_name    STRING        NOT NULL,
+  language_concept_id     INT           NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS concept_ancestor (
+  ancestor_concept_id         INT       NOT NULL,
+  descendant_concept_id       INT       NOT NULL,
+  min_levels_of_separation    INT       NOT NULL,
+  max_levels_of_separation    INT       NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS source_to_concept_map (
+  source_code               STRING      NOT NULL,
+  source_concept_id         INT         NOT NULL,
+  source_vocabulary_id      STRING      NOT NULL,
+  source_code_description   STRING,
+  target_concept_id         INT         NOT NULL,
+  target_vocabulary_id      STRING      NOT NULL,
+  valid_start_date          DATE        NOT NULL,
+  valid_end_date            DATE        NOT NULL,
+  invalid_reason            STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS drug_strength (
+  drug_concept_id              INT       NOT NULL,
+  ingredient_concept_id        INT       NOT NULL,
+  amount_value                 DOUBLE,
+  amount_unit_concept_id       INT,
+  numerator_value              DOUBLE,
+  numerator_unit_concept_id    INT,
+  denominator_value            DOUBLE,
+  denominator_unit_concept_id  INT,
+  box_size                     INT,
+  valid_start_date             DATE      NOT NULL,
+  valid_end_date               DATE      NOT NULL,
+  invalid_reason               STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS cohort_definition (
+  cohort_definition_id            INT     NOT NULL,
+  cohort_definition_name          STRING  NOT NULL,
+  cohort_definition_description   STRING,
+  definition_type_concept_id      INT     NOT NULL,
+  cohort_definition_syntax        STRING,
+  subject_concept_id              INT     NOT NULL,
+  cohort_initiation_date          DATE
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS attribute_definition (
+  attribute_definition_id       INT      NOT NULL,
+  attribute_name                STRING   NOT NULL,
+  attribute_description         STRING,
+  attribute_type_concept_id     INT      NOT NULL,
+  attribute_syntax              STRING
+)
+USING DELTA;
+
+
+/**************************
+
+Standardized meta-data
+
+***************************/
+
+
+CREATE TABLE IF NOT EXISTS cdm_source (
+  cdm_source_name                  STRING  NOT NULL,
+  cdm_source_abbreviation          STRING,
+  cdm_holder                       STRING,
+  source_description               STRING,
+  source_documentation_reference   STRING,
+  cdm_etl_reference                STRING,
+  source_release_date              DATE,
+  cdm_release_date                 DATE,
+  cdm_version                      STRING,
+  vocabulary_version               STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS metadata (
+  metadata_concept_id       INT       NOT NULL,
+  metadata_type_concept_id  INT       NOT NULL,
+  name                      STRING    NOT NULL,
+  value_as_string           STRING,
+  value_as_concept_id       INT,
+  metadata_date             DATE,
+  metadata_datetime         TIMESTAMP
+)
+USING DELTA;
+
+
+/************************
+
+Standardized clinical data
+
+************************/
+
+CREATE TABLE IF NOT EXISTS person (
+  person_id                     INT         NOT NULL,
+  gender_concept_id             INT         NOT NULL,
+  year_of_birth                 INT         NOT NULL,
+  month_of_birth                INT,
+  day_of_birth                  INT,
+  birth_datetime                TIMESTAMP,
+  race_concept_id               INT         NOT NULL,
+  ethnicity_concept_id          INT         NOT NULL,
+  location_id                   INT,
+  provider_id                   INT,
+  care_site_id                  INT,
+  person_source_value           STRING,
+  gender_source_value           STRING,
+  gender_source_concept_id      INT,
+  race_source_value             STRING,
+  race_source_concept_id        INT,
+  ethnicity_source_value        STRING,
+  ethnicity_source_concept_id   INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS observation_period (
+  observation_period_id           INT      NOT NULL,
+  person_id                       INT      NOT NULL,
+  observation_period_start_date   DATE     NOT NULL,
+  observation_period_end_date     DATE     NOT NULL,
+  period_type_concept_id          INT      NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS specimen (
+  specimen_id                   INT       NOT NULL,
+  person_id                     INT       NOT NULL,
+  specimen_concept_id           INT       NOT NULL,
+  specimen_type_concept_id      INT       NOT NULL,
+  specimen_date                 DATE      NOT NULL,
+  specimen_datetime             TIMESTAMP,
+  quantity                      DOUBLE,
+  unit_concept_id               INT,
+  anatomic_site_concept_id      INT,
+  disease_status_concept_id     INT,
+  specimen_source_id            STRING,
+  specimen_source_value         STRING,
+  unit_source_value             STRING,
+  anatomic_site_source_value    STRING,
+  disease_status_source_value   STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS death (
+  person_id                     INT       NOT NULL,
+  death_date                    DATE      NOT NULL,
+  death_datetime                TIMESTAMP,
+  death_type_concept_id         INT       NOT NULL,
+  cause_concept_id              INT,
+  cause_source_value            STRING,
+  cause_source_concept_id       INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS visit_occurrence (
+  visit_occurrence_id             INT       NOT NULL,
+  person_id                       INT       NOT NULL,
+  visit_concept_id                INT       NOT NULL,
+  visit_start_date                DATE      NOT NULL,
+  visit_start_datetime            TIMESTAMP,
+  visit_end_date                  DATE      NOT NULL,
+  visit_end_datetime              TIMESTAMP,
+  visit_type_concept_id           INT       NOT NULL,
+  provider_id                     INT,
+  care_site_id                    INT,
+  visit_source_value              STRING,
+  visit_source_concept_id         INT,
+  admitting_source_concept_id     INT,
+  admitting_source_value          STRING,
+  discharge_to_concept_id         INT,
+  discharge_to_source_value       STRING,
+  preceding_visit_occurrence_id   INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS visit_detail (
+  visit_detail_id                 INT       NOT NULL,
+  person_id                       INT       NOT NULL,
+  visit_detail_concept_id         INT       NOT NULL,
+  visit_detail_start_date         DATE      NOT NULL,
+  visit_detail_start_datetime     TIMESTAMP,
+  visit_detail_end_date           DATE      NOT NULL,
+  visit_detail_end_datetime       TIMESTAMP,
+  visit_detail_type_concept_id    INT       NOT NULL,
+  provider_id                     INT,
+  care_site_id                    INT,
+  admitting_source_concept_id     INT,
+  discharge_to_concept_id         INT,
+  preceding_visit_detail_id       INT,
+  visit_detail_source_value       STRING,
+  visit_detail_source_concept_id  INT,
+  admitting_source_value          STRING,
+  discharge_to_source_value       STRING,
+  visit_detail_parent_id          INT,
+  visit_occurrence_id             INT       NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS procedure_occurrence (
+  procedure_occurrence_id       INT       NOT NULL,
+  person_id                     INT       NOT NULL,
+  procedure_concept_id          INT       NOT NULL,
+  procedure_date                DATE      NOT NULL,
+  procedure_datetime            TIMESTAMP,
+  procedure_type_concept_id     INT       NOT NULL,
+  modifier_concept_id           INT,
+  quantity                      INT,
+  provider_id                   INT,
+  visit_occurrence_id           INT,
+  visit_detail_id               INT,
+  procedure_source_value        STRING,
+  procedure_source_concept_id   INT,
+  modifier_source_value         STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS drug_exposure (
+  drug_exposure_id                INT         NOT NULL,
+  person_id                       INT         NOT NULL,
+  drug_concept_id                 INT         NOT NULL,
+  drug_exposure_start_date        DATE        NOT NULL,
+  drug_exposure_start_datetime    TIMESTAMP,
+  drug_exposure_end_date          DATE        NOT NULL,
+  drug_exposure_end_datetime      TIMESTAMP,
+  verbatim_end_date               DATE,
+  drug_type_concept_id            INT         NOT NULL,
+  stop_reason                     STRING,
+  refills                         INT,
+  quantity                        DOUBLE,
+  days_supply                     INT,
+  sig                             STRING,
+  route_concept_id                INT,
+  lot_number                      STRING,
+  provider_id                     INT,
+  visit_occurrence_id             INT,
+  visit_detail_id                 INT,
+  drug_source_value               STRING,
+  drug_source_concept_id          INT,
+  route_source_value              STRING,
+  dose_unit_source_value          STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS device_exposure (
+  device_exposure_id              INT         NOT NULL,
+  person_id                       INT         NOT NULL,
+  device_concept_id               INT         NOT NULL,
+  device_exposure_start_date      DATE        NOT NULL,
+  device_exposure_start_datetime  TIMESTAMP,
+  device_exposure_end_date        DATE,
+  device_exposure_end_datetime    TIMESTAMP,
+  device_type_concept_id          INT         NOT NULL,
+  unique_device_id                STRING,
+  quantity                        INT,
+  provider_id                     INT,
+  visit_occurrence_id             INT,
+  visit_detail_id                 INT,
+  device_source_value             STRING,
+  device_source_concept_id        INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS condition_occurrence (
+  condition_occurrence_id         INT         NOT NULL,
+  person_id                       INT         NOT NULL,
+  condition_concept_id            INT         NOT NULL,
+  condition_start_date            DATE        NOT NULL,
+  condition_start_datetime        TIMESTAMP,
+  condition_end_date              DATE,
+  condition_end_datetime          TIMESTAMP,
+  condition_type_concept_id       INT         NOT NULL,
+  stop_reason                     STRING,
+  provider_id                     INT,
+  visit_occurrence_id             INT,
+  visit_detail_id                 INT,
+  condition_source_value          STRING,
+  condition_source_concept_id     INT,
+  condition_status_source_value   STRING,
+  condition_status_concept_id     INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS measurement (
+  measurement_id                  INT         NOT NULL,
+  person_id                       INT         NOT NULL,
+  measurement_concept_id          INT         NOT NULL,
+  measurement_date                DATE        NOT NULL,
+  measurement_datetime            TIMESTAMP,
+  measurement_time                STRING,
+  measurement_type_concept_id     INT         NOT NULL,
+  operator_concept_id             INT,
+  value_as_number                 DOUBLE,
+  value_as_concept_id             INT,
+  unit_concept_id                 INT,
+  range_low                       DOUBLE,
+  range_high                      DOUBLE,
+  provider_id                     INT,
+  visit_occurrence_id             INT,
+  visit_detail_id                 INT,
+  measurement_source_value        STRING,
+  measurement_source_concept_id   INT,
+  unit_source_value               STRING,
+  value_source_value              STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS note (
+  note_id                     INT         NOT NULL,
+  person_id                   INT         NOT NULL,
+  note_date                   DATE        NOT NULL,
+  note_datetime               TIMESTAMP,
+  note_type_concept_id        INT         NOT NULL,
+  note_class_concept_id       INT         NOT NULL,
+  note_title                  STRING,
+  note_text                   STRING,
+  encoding_concept_id         INT         NOT NULL,
+  language_concept_id         INT         NOT NULL,
+  provider_id                 INT,
+  visit_occurrence_id         INT,
+  visit_detail_id             INT,
+  note_source_value           STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS note_nlp (
+  note_nlp_id                 INT         NOT NULL,
+  note_id                     INT         NOT NULL,
+  section_concept_id          INT,
+  snippet                     STRING,
+  offset                      STRING,
+  lexical_variant             STRING      NOT NULL,
+  note_nlp_concept_id         INT,
+  note_nlp_source_concept_id  INT,
+  nlp_system                  STRING,
+  nlp_date                    DATE        NOT NULL,
+  nlp_datetime                TIMESTAMP,
+  term_exists                 STRING,
+  term_temporal               STRING,
+  term_modifiers              STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS observation (
+  observation_id                  INT       NOT NULL,
+  person_id                       INT       NOT NULL,
+  observation_concept_id          INT       NOT NULL,
+  observation_date                DATE      NOT NULL,
+  observation_datetime            TIMESTAMP,
+  observation_type_concept_id     INT       NOT NULL,
+  value_as_number                 DOUBLE,
+  value_as_string                 STRING,
+  value_as_concept_id             INT,
+  qualifier_concept_id            INT,
+  unit_concept_id                 INT,
+  provider_id                     INT,
+  visit_occurrence_id             INT,
+  visit_detail_id                 INT,
+  observation_source_value        STRING,
+  observation_source_concept_id   INT,
+  unit_source_value               STRING,
+  qualifier_source_value          STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS fact_relationship (
+  domain_concept_id_1      INT       NOT NULL,
+  fact_id_1                INT       NOT NULL,
+  domain_concept_id_2      INT       NOT NULL,
+  fact_id_2                INT       NOT NULL,
+  relationship_concept_id  INT       NOT NULL
+)
+USING DELTA;
+
+
+/************************
+
+Standardized health system data
+
+************************/
+
+
+CREATE TABLE IF NOT EXISTS location (
+  location_id              INT       NOT NULL,
+  address_1                STRING,
+  address_2                STRING,
+  city                     STRING,
+  state                    STRING,
+  zip                      STRING,
+  county                   STRING,
+  location_source_value    STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS care_site (
+  care_site_id                     INT       NOT NULL,
+  care_site_name                   STRING,
+  place_of_service_concept_id      INT,
+  location_id                      INT,
+  care_site_source_value           STRING,
+  place_of_service_source_value    STRING
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS provider (
+  provider_id                    INT       NOT NULL,
+  provider_name                  STRING,
+  NPI                           STRING,
+  DEA                           STRING,
+  specialty_concept_id           INT,
+  care_site_id                   INT,
+  year_of_birth                  INT,
+  gender_concept_id              INT,
+  provider_source_value          STRING,
+  specialty_source_value         STRING,
+  specialty_source_concept_id    INT,
+  gender_source_value            STRING,
+  gender_source_concept_id       INT
+)
+USING DELTA;
+
+
+/************************
+
+Standardized health economics
+
+************************/
+
+
+CREATE TABLE IF NOT EXISTS payer_plan_period (
+  payer_plan_period_id            INT       NOT NULL,
+  person_id                       INT       NOT NULL,
+  payer_plan_period_start_date    DATE      NOT NULL,
+  payer_plan_period_end_date      DATE      NOT NULL,
+  payer_concept_id                INT,
+  payer_source_value              STRING,
+  payer_source_concept_id         INT,
+  plan_concept_id                 INT,
+  plan_source_value               STRING,
+  plan_source_concept_id          INT,
+  sponsor_concept_id              INT,
+  sponsor_source_value            STRING,
+  sponsor_source_concept_id       INT,
+  family_source_value             STRING,
+  stop_reason_concept_id          INT,
+  stop_reason_source_value        STRING,
+  stop_reason_source_concept_id   INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS cost (
+  cost_id                       INT         NOT NULL,
+  cost_event_id                 INT         NOT NULL,
+  cost_domain_id                STRING      NOT NULL,
+  cost_type_concept_id          INT         NOT NULL,
+  currency_concept_id           INT,
+  total_charge                  DOUBLE,
+  total_cost                    DOUBLE,
+  total_paid                    DOUBLE,
+  paid_by_payer                 DOUBLE,
+  paid_by_patient               DOUBLE,
+  paid_patient_copay            DOUBLE,
+  paid_patient_coinsurance      DOUBLE,
+  paid_patient_deductible       DOUBLE,
+  paid_by_primary               DOUBLE,
+  paid_ingredient_cost          DOUBLE,
+  paid_dispensing_fee           DOUBLE,
+  payer_plan_period_id          INT,
+  amount_allowed                DOUBLE,
+  revenue_code_concept_id       INT,
+  revenue_code_source_value     STRING,
+  drg_concept_id                INT,
+  drg_source_value              STRING
+)
+USING DELTA;
+
+
+/************************
+
+Standardized derived elements
+
+************************/
+
+
+CREATE TABLE IF NOT EXISTS cohort (
+  cohort_definition_id     INT       NOT NULL,
+  subject_id               INT       NOT NULL,
+  cohort_start_date        DATE      NOT NULL,
+  cohort_end_date          DATE      NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS cohort_attribute (
+  cohort_definition_id      INT       NOT NULL,
+  subject_id                INT       NOT NULL,
+  cohort_start_date         DATE      NOT NULL,
+  cohort_end_date           DATE      NOT NULL,
+  attribute_definition_id   INT       NOT NULL,
+  value_as_number           DOUBLE,
+  value_as_concept_id       INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS drug_era (
+  drug_era_id             INT       NOT NULL,
+  person_id               INT       NOT NULL,
+  drug_concept_id         INT       NOT NULL,
+  drug_era_start_date     DATE      NOT NULL,
+  drug_era_end_date       DATE      NOT NULL,
+  drug_exposure_count     INT,
+  gap_days                INT
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS dose_era (
+  dose_era_id             INT       NOT NULL,
+  person_id               INT       NOT NULL,
+  drug_concept_id         INT       NOT NULL,
+  unit_concept_id         INT       NOT NULL,
+  dose_value              DOUBLE    NOT NULL,
+  dose_era_start_date     DATE      NOT NULL,
+  dose_era_end_date       DATE      NOT NULL
+)
+USING DELTA;
+
+
+CREATE TABLE IF NOT EXISTS condition_era (
+  condition_era_id              INT       NOT NULL,
+  person_id                     INT       NOT NULL,
+  condition_concept_id          INT       NOT NULL,
+  condition_era_start_date      DATE      NOT NULL,
+  condition_era_end_date        DATE      NOT NULL,
+  condition_occurrence_count    INT
+)
+USING DELTA;
+
+
+DELETE FROM omop531.metadata;
+
+INSERT INTO omop531.metadata
 VALUES
   (
     0,
     0,
     'OHDSI OMOP CDM Version',
-    '5.3.1',
+	'5.3.1',
     0,
     CURRENT_DATE(),
     CURRENT_TIMESTAMP()
   );
 
--- Select metadata
 SELECT
   metadata_concept_id,
   metadata_type_concept_id,
@@ -220,6 +705,9 @@ SELECT
   value_as_concept_id,
   metadata_date,
   metadata_datetime
-FROM METADATA;
+FROM omop531.metadata;
+
+
+
 
 

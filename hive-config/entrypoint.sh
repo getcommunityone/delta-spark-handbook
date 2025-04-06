@@ -2,9 +2,13 @@
 
 set -x
 
-: ${DB_DRIVER:=derby}
+: ${DB_DRIVER:=postgres}
 
 SKIP_SCHEMA_INIT="${IS_RESUME:-false}"
+
+# Set SLF4J configuration
+export HADOOP_OPTS="$HADOOP_OPTS -Dlog4j.configurationFile=$HIVE_HOME/conf/log4j2.properties"
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS -Dlog4j.configurationFile=$HIVE_HOME/conf/log4j2.properties"
 
 function initialize_hive {
   $HIVE_HOME/bin/schematool -dbType $DB_DRIVER -initSchema

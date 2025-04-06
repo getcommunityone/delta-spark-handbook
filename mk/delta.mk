@@ -4,7 +4,8 @@
 SHELL = /bin/bash
 HADOOP_AWS_VERSION := 3.3.4
 AWS_SDK_VERSION := 2.24.12
-DELTA_JARS_DIR=:= delta-jars
+DELTA_JARS_DIR := delta-jars
+HADOOP_VERSION := 3.3.4
 
 delta-create-dirs:
 	@echo "Creating directories..."
@@ -24,9 +25,10 @@ delta-download-jars: delta-create-dirs
 	@rm -f delta-jars/hadoop-aws-$(HADOOP_AWS_VERSION).jar
 	@rm -f delta-jars/aws-java-sdk-bundle-$(AWS_SDK_VERSION).jar
 	@rm -f delta-jars/postgresql-42.7.3.jar
-=======
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+	@rm -f delta-jars/hadoop-client-$(HADOOP_VERSION).jar
+	@rm -f delta-jars/hadoop-client-runtime-$(HADOOP_VERSION).jar
+	@rm -f delta-jars/hadoop-client-api-$(HADOOP_VERSION).jar
+
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.3.0/delta-spark_2.12-3.3.0.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/io/delta/delta-storage/3.3.0/delta-storage-3.3.0.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/$(HADOOP_AWS_VERSION)/hadoop-aws-$(HADOOP_AWS_VERSION).jar
@@ -36,12 +38,10 @@ delta-download-jars: delta-create-dirs
 	wget -P delta-jars https://repo1.maven.org/maven2/com/fasterxml/woodstox/woodstox-core/6.2.4/woodstox-core-6.2.4.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/codehaus/woodstox/stax2-api/4.2/stax2-api-4.2.jar
 	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.8.0/commons-configuration2-2.8.0.jar
-
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/dev-r1
->>>>>>> 1a9bd8df602d24c9b044429f4fbd6fe8a1a66041
+	wget -P delta-jars https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client/$(HADOOP_VERSION)/hadoop-client-$(HADOOP_VERSION).jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-runtime/$(HADOOP_VERSION)/hadoop-client-runtime-$(HADOOP_VERSION).jar
+	wget -P delta-jars https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-client-api/$(HADOOP_VERSION)/hadoop-client-api-$(HADOOP_VERSION).jar
 	@echo "JARs downloaded successfully"
+
+.PHONY: delta-create-dirs delta-download-jars

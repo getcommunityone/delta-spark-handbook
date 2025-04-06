@@ -33,9 +33,10 @@ def create_spark_session(app_name="EHR Data Loader", aws_access_key=None, aws_se
         f"{jars_home}/hadoop-aws-3.3.4.jar",
         f"{jars_home}/bundle-2.24.12.jar",
         # Add Hadoop client JARs
-        f"{jars_home}/hadoop-client-3.3.4.jar",
+        # f"{jars_home}/hadoop-client-3.3.4.jar",
         f"{jars_home}/hadoop-client-runtime-3.3.4.jar",
-        f"{jars_home}/hadoop-client-api-3.3.4.jar"
+        f"{jars_home}/hadoop-client-api-3.3.4.jar",
+        f"{jars_home}/postgresql-42.7.3.jar"
     ]
 
     # Verify all JARs exist
@@ -144,114 +145,6 @@ def infer_schema_from_file(spark, file_path, sample_size=1000):
     return sample_df.schema
 
 
-def load_file_to_delta(spark, file_path, database_name, table_name, mode="overwrite", partition_by=None):
-    """
-    Load a CSV file into a Delta table using a database name.
-
-
-    Args:
-        spark: SparkSession object.
-        file_path: Path to the CSV file (can be S3 URI).
-        database_name: Name of the database to store the Delta table.
-        table_name: Name of the table to create.
-        mode: Write mode (overwrite, append, etc.).
-        partition_by: Column(s) to partition the data by.
-    """
-
-    full_table_name = "unknown"
-
-    try:
-
-
-
-        # Infer schema from file
-        schema = infer_schema_from_file(spark, file_path)
-
-        # Read the CSV file with the inferred schema
-        df = spark.read.option("header", "true").schema(schema).csv(file_path)
-
-        # Convert all column names to lowercase
-        for col_name in df.columns:
-            df = df.withColumnRenamed(col_name, col_name.lower())
-
-        if "start" in df.columns:
-
-            df = df.withColumn("start_date", F.to_date(
-                F.col("start"), "yyyy-MM-dd"))
-
-            df = df.withColumn("year", F.year(F.col("start_date")))
-            df = df.withColumn("month", F.month(F.col("start_date")))
-
-        # Ensure DATE is properly converted to a date type
-        if "date" in df.columns:
-            df = df.withColumn("date", F.to_date(F.col("date"), "yyyy-MM-dd"))
-            df = df.withColumn("year", F.year(F.col("date")))
-            df = df.withColumn("month", F.month(F.col("date")))
-
-        # Add metadata columns
-        df = df.withColumn("ingestion_timestamp", F.current_timestamp())
-        df = df.withColumn("source_file", F.lit(file_path.split('/')[-1]))
-
-        # Define the full table name
-        full_table_name = f"{database_name}.{table_name}"
-
-        # Write to Delta Lake using saveAsTable
-
-        writer = df.write.format("delta").mode(
-            mode).option("overwriteSchema", "true").option("delta.compatibility.symlinkFormatManifest.enabled", "false")
-
-        if partition_by:
-            writer = writer.partitionBy(partition_by)
-
-        # Get warehouse dir from Spark config
-        warehouse_dir = spark.conf.get("spark.sql.warehouse.dir").rstrip("/")
-
-        # Format: {warehouse_dir}/{database}.db/{table}
-        table_path = f"{warehouse_dir}/{database_name}.db/{table_name}"
-
-        print(f"📁 Calculated table path: {table_path}")
-
-
-        # writer.saveAsTable(full_table_name)
-        writer.save(table_path)
-
-        # Then create/refresh the table definition pointing to that location
-        spark.sql(f"""
-         CREATE TABLE IF NOT EXISTS {database_name}.{table_name}
-            USING DELTA
-             LOCATION '{table_path}'
-         """)
-
-        print(f"Successfully loaded {file_path} into table {full_table_name}")
-        return True
-    except Exception as e:
-
-        print(
-            f"Error loading {file_path} into table {full_table_name}: {str(e)}")
-
-        return False
-
-
-def list_s3_files(spark, s3_dir_path, file_extension=".csv"):
-    """
-    List files in an S3 directory with a specific extension.
-
-    Args:
-        spark: SparkSession object
-        s3_dir_path: S3 directory path (e.g., s3a://bucket-name/path/)
-        file_extension: File extension to filter by
-
-    Returns:
-        List of file paths
-    """
-    # Create a DataFrame representing the files
-    files_df = spark.read.format("binaryFile").load(s3_dir_path)
-
-    # Filter files by extension and collect their paths
-    csv_files = files_df.filter(files_df.path.endswith(
-        file_extension)).select("path").collect()
-
-    return [row.path for row in csv_files]
 
 
 def load_ehr_data_to_delta(ehr_s3_path, database_name, aws_access_key=None, aws_secret_key=None):
@@ -371,7 +264,7 @@ if __name__ == "__main__":
     aws_secret_key = "minioadmin"  # Replace with your key or use None
 
     # Update S3 path to use s3a protocol
-    ehr_s3_path = "s3a://ehr/"
+    ehr_s3_path = "ehr/data/synthea/ADHD/csv/"
 
     load_ehr_data_to_delta(ehr_s3_path, database_name,
                            aws_access_key, aws_secret_key)

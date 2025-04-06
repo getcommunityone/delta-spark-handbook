@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "c1_core"
+version = "0.1.1"
+description = "A collection of utility libraries for data processing"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+dependencies = [
+    "pyspark>=3.0.0",
+    "delta-spark>=2.0.0",
+    "boto3>=1.26.0",
+    "botocore>=1.29.0",
+    "minio>=7.1.0",
+    "backoff>=2.2.1",
+    "opentelemetry-api>=1.21.0",
+    "opentelemetry-sdk>=1.21.0",
+    "opentelemetry-semantic-conventions>=0.42b0",
+    "azure-monitor-opentelemetry-exporter>=1.0.0b31",
+    "azure-storage-file-datalake>=12.8.0",
+    "urllib3>=2.0.0",
+    "python-dateutil>=2.8.2",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["data", "processing", "s3", "minio", "delta-lake", "tracing", "monitoring", "azure", "aws", "storage"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/c1_core"
+Repository = "https://github.com/yourusername/c1_core.git"
+
+[project.scripts]
+
+
+[tool.setuptools]
+packages = ["c1_core"]
+
+[tool.setuptools.dynamic]
+version = { attr = "c1_core.__version__" }
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+[tool.poetry]
+name = "c1_core"
+version = "0.1.1"
+description = "A collection of utility libraries for data processing"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "c1_core"}]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=c1_core --cov-report=term-missing"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]

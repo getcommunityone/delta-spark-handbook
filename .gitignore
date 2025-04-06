@@ -138,3 +138,32 @@ hive-config/hiveserver2.pid
 # Spark environment configuration
 spark-conf/spark-env.sh
 hive-config/hiveserver2.pid
+
+# Python egg-info
+c1_core.egg-info/
+*.egg-info/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
